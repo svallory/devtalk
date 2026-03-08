@@ -191,6 +191,21 @@ async function renderPages({ config, srcDir, outputDir, hooks, buildHash, option
     await fs.writeFile(finalPath, fullHtml);
   }
 
+  // After the render loop, emit dev manifest
+  if (options.isDev) {
+    const manifest = {};
+    for (const page of pages) {
+      // URL path: /guide/setup (derived from outputPath)
+      let urlPath = '/' + page.outputPath.replace(/\\/g, '/').replace(/\/index\.html$/, '').replace(/^index\.html$/, '');
+      if (urlPath === '/.') urlPath = '/';
+      manifest[urlPath] = path.relative(process.cwd(), page.sourcePath).replace(/\\/g, '/');
+    }
+
+    const devDir = path.join(outputDir, '__dev');
+    await fs.ensureDir(devDir);
+    await fs.writeFile(path.join(devDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
+  }
+
   return pages;
 }
 
