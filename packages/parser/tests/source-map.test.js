@@ -129,6 +129,75 @@ function findToken(tokens, type) {
 }
 
 // ---------------------------------------------------------------------------
+// 3b. Tabs inner content line mapping
+// ---------------------------------------------------------------------------
+{
+  const src = [
+    'preamble',              // line 0
+    '',                      // line 1
+    '::: tabs',              // line 2
+    '== tab "Alpha"',        // line 3
+    'Alpha paragraph',       // line 4
+    '',                      // line 5
+    '== tab "Beta"',         // line 6
+    'Beta paragraph',        // line 7
+    ':::',                   // line 8
+  ].join('\n');
+
+  const tokens = md.parse(src, {});
+  // Find paragraph_open tokens inside tabs (after tabs_open)
+  const tabsOpenIdx = tokens.findIndex(t => t.type === 'tabs_open');
+  const innerParagraphs = tokens.filter((t, i) => i > tabsOpenIdx && t.type === 'paragraph_open');
+
+  assert(innerParagraphs.length >= 2, `tabs inner: found ${innerParagraphs.length} paragraph_open tokens, expected >= 2`);
+
+  if (innerParagraphs.length >= 2) {
+    assert(
+      innerParagraphs[0].map && innerParagraphs[0].map[0] === 4,
+      `tabs inner: first paragraph startLine = 4, got ${innerParagraphs[0].map && innerParagraphs[0].map[0]}`
+    );
+    assert(
+      innerParagraphs[1].map && innerParagraphs[1].map[0] === 7,
+      `tabs inner: second paragraph startLine = 7, got ${innerParagraphs[1].map && innerParagraphs[1].map[0]}`
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 4b. Changelog inner content line mapping
+// ---------------------------------------------------------------------------
+{
+  const src = [
+    'preamble',              // line 0
+    '',                      // line 1
+    '::: changelog',         // line 2
+    '== 2025-01-01',         // line 3
+    'First entry text',      // line 4
+    '',                      // line 5
+    '== 2025-02-01',         // line 6
+    'Second entry text',     // line 7
+    ':::',                   // line 8
+  ].join('\n');
+
+  const tokens = md.parse(src, {});
+  const changelogOpenIdx = tokens.findIndex(t => t.type === 'changelog_open');
+  const innerParagraphs = tokens.filter((t, i) => i > changelogOpenIdx && t.type === 'paragraph_open');
+
+  assert(innerParagraphs.length >= 2, `changelog inner: found ${innerParagraphs.length} paragraph_open tokens, expected >= 2`);
+
+  if (innerParagraphs.length >= 2) {
+    assert(
+      innerParagraphs[0].map && innerParagraphs[0].map[0] === 4,
+      `changelog inner: first paragraph startLine = 4, got ${innerParagraphs[0].map && innerParagraphs[0].map[0]}`
+    );
+    assert(
+      innerParagraphs[1].map && innerParagraphs[1].map[0] === 7,
+      `changelog inner: second paragraph startLine = 7, got ${innerParagraphs[1].map && innerParagraphs[1].map[0]}`
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 5. Button
 // ---------------------------------------------------------------------------
 {

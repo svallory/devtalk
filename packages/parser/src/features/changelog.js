@@ -12,18 +12,6 @@
  * --------------------------------------------------------------------
  */
 
-function smartDedent(str) {
-  const lines = str.split('\n');
-  let minIndent = Infinity;
-  lines.forEach(line => {
-    if (line.trim().length === 0) return;
-    const match = line.match(/^ */);
-    if (match[0].length < minIndent) minIndent = match[0].length;
-  });
-  if (minIndent === Infinity) return str;
-  return lines.map(line => line.trim().length ? line.substring(minIndent) : '').join('\n');
-}
-
 function changelogRule(state, startLine, endLine, silent) {
   const start = state.bMarks[startLine] + state.tShift[startLine];
   const max = state.eMarks[startLine];
@@ -67,38 +55,26 @@ function changelogRule(state, startLine, endLine, silent) {
 
   if (!found) return false;
 
-  // Extract content block
-  let content = '';
+  // Parse "== Date" delimiters to find line ranges for each entry
+  const entries = [];
+  let currentEntry = null;
+
   for (let i = startLine + 1; i < nextLine; i++) {
     const lineStart = state.bMarks[i] + state.tShift[i];
     const lineEnd = state.eMarks[i];
-    content += state.src.slice(lineStart, lineEnd) + '\n';
-  }
-
-  // Parse "== Date" entries
-  const lines = content.split('\n');
-  const entries = [];
-  let currentEntry = null;
-  let currentContentLines = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const rawLine = lines[i];
-    const trimmedLine = rawLine.trim();
-    const markerMatch = trimmedLine.match(/^==\s+(.+)$/);
+    const lineContent = state.src.slice(lineStart, lineEnd).trim();
+    const markerMatch = lineContent.match(/^==\s+(.+)$/);
 
     if (markerMatch) {
       if (currentEntry) {
-        currentEntry.content = smartDedent(currentContentLines.join('\n'));
+        currentEntry.endLine = i;
         entries.push(currentEntry);
       }
-      currentEntry = { meta: markerMatch[1], content: '' };
-      currentContentLines = [];
-    } else if (currentEntry) {
-      currentContentLines.push(rawLine);
+      currentEntry = { meta: markerMatch[1], startLine: i + 1, endLine: nextLine };
     }
   }
   if (currentEntry) {
-    currentEntry.content = smartDedent(currentContentLines.join('\n'));
+    currentEntry.endLine = nextLine;
     entries.push(currentEntry);
   }
 
@@ -106,14 +82,21 @@ function changelogRule(state, startLine, endLine, silent) {
   openToken.map = [startLine, nextLine + 1];
 
   entries.forEach(entry => {
-    // We render HTML blocks directly for the timeline structure
     const entryOpen = state.push('html_block', '', 0);
     entryOpen.content = `<div class="changelog-entry">
       <div class="changelog-meta"><span class="changelog-date">${entry.meta}</span></div>
       <div class="changelog-body">`;
+    entryOpen.map = [entry.startLine - 1, entry.startLine];
 
-    // Recurse render the markdown inside the entry
-    entryOpen.content += state.md.render(entry.content, state.env);
+    if (entry.startLine < entry.endLine) {
+      const oldParentType = state.parentType;
+      const oldLineMax = state.lineMax;
+      state.parentType = 'container';
+      state.lineMax = entry.endLine;
+      state.md.block.tokenize(state, entry.startLine, entry.endLine);
+      state.parentType = oldParentType;
+      state.lineMax = oldLineMax;
+    }
 
     const entryClose = state.push('html_block', '', 0);
     entryClose.content = `</div></div>`;
