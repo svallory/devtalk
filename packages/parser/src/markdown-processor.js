@@ -110,6 +110,112 @@ function createMarkdownProcessor(config = {}, pluginsCallback) {
   // Register Built-in Features
   registerFeatures(md);
 
+  // Source-map & block-ID renderer plugin (dev mode only)
+  if (config.isDev) {
+    // A. Core rule: assign block IDs to all tokens
+    md.core.ruler.push('assign_block_ids', function(state) {
+      const tokens = state.tokens;
+      const stack = []; // stack of sibling counters per nesting level
+      let idx = 0;
+
+      for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        if (token.nesting === 1) {
+          // Opening token — assign ID from current path, then push new level
+          const path = stack.length
+            ? stack.map(s => s.idx).join('.') + '.' + idx
+            : String(idx);
+          token.meta = token.meta || {};
+          token.meta.blockId = path;
+          stack.push({ idx });
+          idx = 0; // reset for children
+        } else if (token.nesting === -1) {
+          // Closing token — pop level, restore parent counter
+          const frame = stack.pop();
+          if (frame !== undefined) {
+            idx = frame.idx + 1;
+          }
+        } else {
+          // Self-closing / block-level token (hr, html_block, inline, etc.)
+          if (token.type === 'inline' || token.type === 'hr' || token.type === 'html_block') {
+            const path = stack.length
+              ? stack.map(s => s.idx).join('.') + '.' + idx
+              : String(idx);
+            token.meta = token.meta || {};
+            token.meta.blockId = path;
+
+            // D. Inline token ID assignment
+            if (token.type === 'inline' && token.children) {
+              const parentBlockId = token.meta.blockId;
+              let inlineIdx = 0;
+              const inlineStack = [];
+              for (const child of token.children) {
+                if (child.nesting === 1) {
+                  child.meta = child.meta || {};
+                  child.meta.blockId = parentBlockId + ':' + (inlineStack.length ? inlineStack.map(s => s.idx).join('.') + '.' : '') + inlineIdx;
+                  inlineStack.push({ idx: inlineIdx });
+                  inlineIdx = 0; // reset for children
+                } else if (child.nesting === -1) {
+                  const frame = inlineStack.pop();
+                  if (frame) inlineIdx = frame.idx + 1;
+                } else if (child.type === 'code_inline') {
+                  child.meta = child.meta || {};
+                  child.meta.blockId = parentBlockId + ':' + (inlineStack.length ? inlineStack.map(s => s.idx).join('.') + '.' : '') + inlineIdx;
+                  inlineIdx++;
+                }
+                // text, softbreak, etc. don't get IDs
+              }
+            }
+
+            if (token.type === 'hr' || token.type === 'html_block') {
+              idx++;
+            }
+          }
+        }
+      }
+    });
+
+    // B. Override renderToken to inject data-source-map and data-block-id
+    const originalRenderToken = md.renderer.renderToken.bind(md.renderer);
+    md.renderer.renderToken = function(tokens, idx, options) {
+      const token = tokens[idx];
+      if (token.nesting === 1 && token.map && token.meta && token.meta.blockId) {
+        token.attrPush(['data-source-map', token.map[0] + ':' + token.map[1]]);
+        token.attrPush(['data-block-id', token.meta.blockId]);
+      }
+      return originalRenderToken(tokens, idx, options);
+    };
+
+    // C. Override inline element renderers to inject data-block-id
+    const inlineOpenTypes = ['strong_open', 'em_open', 'link_open', 's_open'];
+    for (const type of inlineOpenTypes) {
+      const original = md.renderer.rules[type] || function(tokens, idx, options, env, self) {
+        return self.renderToken(tokens, idx, options);
+      };
+      md.renderer.rules[type] = function(tokens, idx, options, env, self) {
+        const token = tokens[idx];
+        if (token.meta && token.meta.blockId) {
+          token.attrPush(['data-block-id', token.meta.blockId]);
+        }
+        return original(tokens, idx, options, env, self);
+      };
+    }
+
+    // code_inline is self-closing, so we wrap the output
+    const originalCodeInline = md.renderer.rules.code_inline || function(tokens, idx, options, env, self) {
+      const token = tokens[idx];
+      return '<code>' + md.utils.escapeHtml(token.content) + '</code>';
+    };
+    md.renderer.rules.code_inline = function(tokens, idx, options, env, self) {
+      const token = tokens[idx];
+      if (token.meta && token.meta.blockId) {
+        return '<code data-block-id="' + md.utils.escapeHtml(token.meta.blockId) + '">' + md.utils.escapeHtml(token.content) + '</code>';
+      }
+      return originalCodeInline(tokens, idx, options, env, self);
+    };
+  }
+
   // External Plugins Hook
   if (typeof pluginsCallback === 'function') {
     pluginsCallback(md);
@@ -183,6 +289,16 @@ function extractHeadings(html) {
 function processContent(rawString, mdInstance, config, env = {}) {
   let frontmatter, markdownContent;
 
+  // Compute frontmatterLineCount before gray-matter parse
+  let frontmatterLineCount = 0;
+  if (rawString.startsWith('---')) {
+    const closingIndex = rawString.indexOf('---', 3);
+    if (closingIndex !== -1) {
+      frontmatterLineCount = rawString.substring(0, closingIndex + 3).split('\n').length;
+      if (rawString[closingIndex + 3] === '\n') frontmatterLineCount++;
+    }
+  }
+
   try {
     const parsed = matter(rawString);
     frontmatter = parsed.data;
@@ -215,7 +331,7 @@ function processContent(rawString, mdInstance, config, env = {}) {
     };
   }
 
-  return { frontmatter, htmlContent, headings, searchData };
+  return { frontmatter, htmlContent, headings, searchData, frontmatterLineCount };
 }
 
 module.exports = { createMarkdownProcessor, processContent };
