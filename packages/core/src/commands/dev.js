@@ -65,6 +65,20 @@ function getNetworkIp() {
 // Static Server Logic
 
 async function serveStatic(req, res, rootDir) {
+  // Serve dev-only API script
+  if (req.url === '/__dev/docmd-api.js') {
+    try {
+      const apiScriptPath = path.resolve(__dirname, '../../../node_modules/@docmd/ui/assets/js/docmd-api.js');
+      const apiScript = await fs.readFile(apiScriptPath, 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/javascript' });
+      res.end(apiScript);
+    } catch (err) {
+      res.writeHead(404);
+      res.end('Not found');
+    }
+    return;
+  }
+
   let safePath = path.normalize(req.url).replace(/^(\.\.[\/\\])+/, '').split('?')[0].split('#')[0];
   if (safePath === '/' || safePath === '\\') safePath = 'index.html';
 
@@ -102,27 +116,7 @@ async function serveStatic(req, res, rootDir) {
 
     if (contentType === 'text/html') {
       const htmlStr = content.toString('utf-8');
-      const liveReloadScript = `
-        <script>
-          (function() {
-            let socket;
-            let retryCount = 0;
-            const maxRetries = 50;
-            function connect() {
-              if (socket && (socket.readyState === 0 || socket.readyState === 1)) return;
-              socket = new WebSocket('ws://' + window.location.host);
-              socket.onopen = () => { console.log('⚡ docmd connected'); retryCount = 0; };
-              socket.onmessage = (e) => { if(e.data === 'reload') window.location.reload(); };
-              socket.onclose = () => {
-                if (retryCount < maxRetries) {
-                    retryCount++;
-                    setTimeout(connect, Math.min(1000 * (1.5 ** retryCount), 5000));
-                }
-              };
-            }
-            setTimeout(connect, 500);
-          })();
-        </script></body>`;
+      const liveReloadScript = `<script src="/__dev/docmd-api.js"></script></body>`;
       res.end(htmlStr.replace('</body>', liveReloadScript));
     } else {
       res.end(content);
@@ -139,18 +133,7 @@ async function serveStatic(req, res, rootDir) {
 
         // Inject Live Reload into 404 page too so development continues smoothly
         const htmlStr = content.toString('utf-8');
-        const liveReloadScript = `
-        <script>
-          (function() {
-            let socket;
-            function connect() {
-              socket = new WebSocket('ws://' + window.location.host);
-              socket.onmessage = (e) => { if(e.data === 'reload') window.location.reload(); };
-              socket.onclose = () => setTimeout(connect, 1000);
-            }
-            setTimeout(connect, 500);
-          })();
-        </script></body>`;
+        const liveReloadScript = `<script src="/__dev/docmd-api.js"></script></body>`;
         res.end(htmlStr.replace('</body>', liveReloadScript));
       } catch (e2) {
         // 2. Fallback if 404.html doesn't exist (e.g. build failed)
