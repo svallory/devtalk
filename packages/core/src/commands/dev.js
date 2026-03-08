@@ -201,8 +201,13 @@ async function startDevServer(configPathOption, opts = {}) {
   // Create Server
   const server = http.createServer((req, res) => serveStatic(req, res, paths.outputDir));
   let wss;
+  let suppressNextReload = false;
 
   function broadcastReload() {
+    if (suppressNextReload) {
+      suppressNextReload = false;
+      return;
+    }
     if (wss) {
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) client.send('reload');
@@ -334,6 +339,41 @@ async function startDevServer(configPathOption, opts = {}) {
       .on('listening', async () => {
         wss = new WebSocket.Server({ server });
         wss.on('error', (e) => console.error('WebSocket Error:', e.message));
+
+        // Action dispatcher for plugin actions/events
+        const { loadPlugins, hooks } = require('../utils/plugin-loader');
+        loadPlugins(config);
+        const { createActionDispatcher } = require('../utils/action-dispatcher');
+        const dispatcher = createActionDispatcher(hooks, {
+          projectRoot: CWD,
+          config,
+          broadcast: (event, data) => {
+            wss.clients.forEach(client => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: 'event', name: event, data }));
+              }
+            });
+          }
+        });
+
+        wss.on('connection', (ws) => {
+          ws.on('message', async (raw) => {
+            let msg;
+            try { msg = JSON.parse(raw.toString()); } catch { return; }
+
+            if (msg.type === 'call') {
+              try {
+                const { result, reload } = await dispatcher.handleCall(msg.action, msg.payload);
+                if (reload) suppressNextReload = true;
+                ws.send(JSON.stringify({ id: msg.id, type: 'response', result, reload }));
+              } catch (e) {
+                ws.send(JSON.stringify({ id: msg.id, type: 'response', error: e.message }));
+              }
+            } else if (msg.type === 'event') {
+              dispatcher.handleEvent(msg.name, msg.data);
+            }
+          });
+        });
 
         const indexHtmlPath = path.join(paths.outputDir, 'index.html');
         const networkIp = getNetworkIp();
