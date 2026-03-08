@@ -126,6 +126,7 @@ function tabsRule(state, startLine, endLine, silent) {
   // Generate Tokens
   const openToken = state.push('tabs_open', 'div', 1);
   openToken.attrs = [['class', 'docmd-tabs']];
+  openToken.map = [startLine, nextLine + 1];
 
   const navToken = state.push('tabs_nav_open', 'div', 1);
   tabs.forEach((tab, index) => {

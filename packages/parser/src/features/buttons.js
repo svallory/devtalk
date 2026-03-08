@@ -60,6 +60,7 @@ function buttonRule(state, startLine, endLine, silent) {
 
   // Generate Token
   const token = state.push('html_inline', '', 0);
+  token.map = [startLine, startLine + 1];
 
   let styleAttr = '';
   if (color) {

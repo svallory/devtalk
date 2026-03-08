@@ -93,6 +93,7 @@ function createDepthTrackingContainer(md, name, renderOpen, renderClose) {
 
     const openToken = state.push(`custom_${name}_open`, 'div', 1);
     openToken.info = info;
+    openToken.map = [startLine, nextLine + 1];
 
     if (innerContent) {
       const renderedContent = state.md.render(innerContent, state.env);

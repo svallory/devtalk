@@ -102,7 +102,8 @@ function changelogRule(state, startLine, endLine, silent) {
     entries.push(currentEntry);
   }
 
-  state.push('changelog_open', 'div', 1);
+  const openToken = state.push('changelog_open', 'div', 1);
+  openToken.map = [startLine, nextLine + 1];
 
   entries.forEach(entry => {
     // We render HTML blocks directly for the timeline structure

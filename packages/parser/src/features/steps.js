@@ -56,6 +56,7 @@ function stepsRule(state, startLine, endLine, silent) {
 
   const openToken = state.push('steps_open', 'div', 1);
   openToken.info = '';
+  openToken.map = [startLine, nextLine + 1];
 
   const oldParentType = state.parentType;
   const oldLineMax = state.lineMax;
