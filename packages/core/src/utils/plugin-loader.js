@@ -20,7 +20,9 @@ const hooks = {
   injectBody: [],
   onPostBuild: [],
   assets: [],
-  getClientAssets: [] // Legacy support
+  getClientAssets: [], // Legacy support
+  actions: {},         // action name → handler function
+  events: {}           // event name → handler function
 };
 
 // Map short names to package names
@@ -36,7 +38,9 @@ const ALIASES = {
 
 function loadPlugins(config) {
   // 1. Reset hooks
-  Object.keys(hooks).forEach(key => hooks[key] = []);
+  Object.keys(hooks).forEach(key => {
+    hooks[key] = Array.isArray(hooks[key]) ? [] : {};
+  });
 
   // 2. Initialize Plugin Map (Name -> Options)
   // This ensures unique plugins (last write wins)
@@ -103,6 +107,13 @@ function registerPlugin(name, plugin, options) {
   if (typeof plugin.onPostBuild === 'function') hooks.onPostBuild.push((ctx) => plugin.onPostBuild({ ...ctx, options }));
 
   if (typeof plugin.getAssets === 'function') hooks.assets.push(() => plugin.getAssets(options));
+
+  if (plugin.actions && typeof plugin.actions === 'object') {
+    Object.assign(hooks.actions, plugin.actions);
+  }
+  if (plugin.events && typeof plugin.events === 'object') {
+    Object.assign(hooks.events, plugin.events);
+  }
 }
 
 module.exports = { loadPlugins, hooks };
