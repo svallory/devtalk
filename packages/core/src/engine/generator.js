@@ -20,7 +20,8 @@ const { findPageNeighbors } = require('@docmd/parser/src/utils/navigation-helper
 const { generateAssetTag } = require('./assets');
 
 async function renderPages({ config, srcDir, outputDir, hooks, buildHash, options }) {
-  const mdProcessor = parser.createMarkdownProcessor(config, (md) => hooks.markdownSetup.forEach(hook => hook(md)));
+  const mdProcessor = parser.createMarkdownProcessor({ ...config, isDev: options.isDev }, (md) => hooks.markdownSetup.forEach(hook => hook(md)));
+
 
   // Load Layout Templates
   const templates = {
@@ -78,7 +79,7 @@ async function renderPages({ config, srcDir, outputDir, hooks, buildHash, option
     const rawContent = await fs.readFile(filePath, 'utf8');
     const relativePath = path.relative(srcDir, filePath);
     const isIndex = path.basename(relativePath).startsWith('index.');
-    const processed = parser.processContent(rawContent, mdProcessor, config, { isIndex });
+    const processed = parser.processContent(rawContent, mdProcessor, { ...config, isDev: options.isDev }, { isIndex });
     if (!processed) continue;
     const htmlOutputPath = isIndex ? path.join(path.dirname(relativePath), 'index.html') : relativePath.replace(/\.md$/, '/index.html');
     pages.push({ ...processed, sourcePath: filePath, outputPath: htmlOutputPath });
