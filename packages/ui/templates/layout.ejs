@@ -67,10 +67,11 @@
     <% }); %>
     <%- themeInitScript %>
 </head>
-<body class="<%= sidebarConfig?.enabled === false ? 'no-sidebar' : (sidebarConfig?.collapsible ? 'sidebar-collapsible' : 'sidebar-not-collapsible') %>" 
-data-default-collapsed="<%= sidebarConfig?.defaultCollapsed %>" 
+<body class="<%= sidebarConfig?.enabled === false ? 'no-sidebar' : (sidebarConfig?.collapsible ? 'sidebar-collapsible' : 'sidebar-not-collapsible') %>"
+data-default-collapsed="<%= sidebarConfig?.defaultCollapsed %>"
 data-copy-code-enabled="<%= config.copyCode === true %>"
-data-spa-enabled="<%= config.layout?.spa !== false %>">
+data-spa-enabled="<%= config.layout?.spa !== false %>"
+<%= locals.sourceFile ? `data-source-file="${sourceFile}"` : '' %>>
     
     <a href="#main-content" class="skip-link">Skip to main content</a>
 

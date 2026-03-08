@@ -181,6 +181,9 @@ async function renderPages({ config, srcDir, outputDir, hooks, buildHash, option
       editUrl,
       editLinkText,
 
+      sourceFile: options.isDev ? path.relative(process.cwd(), page.sourcePath).replace(/\\/g, '/') : null,
+
+
       // Placeholders for template compatibility
       themeCssLinkHtml: '',
       metaTagsHtml: '',
