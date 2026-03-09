@@ -16,16 +16,16 @@ function injectThemeCSS(): void {
   style.id = THEME_STYLE_ID;
   style.textContent = `
     :root {
-      --wa-color-surface-default: var(--dc-bg, hsl(0 0% 100%));
-      --wa-color-surface-raised: var(--dc-muted, hsl(0 0% 96.1%));
-      --wa-color-surface-border: var(--dc-border, hsl(0 0% 89.8%));
-      --wa-color-text-normal: var(--dc-fg, hsl(0 0% 9%));
-      --wa-color-text-quiet: var(--dc-muted-fg, hsl(0 0% 45.1%));
-      --wa-color-text-link: var(--dc-fg, hsl(0 0% 9%));
-      --wa-color-brand-fill-loud: var(--dc-fg, hsl(0 0% 9%));
+      --wa-color-surface-default: var(--tc-bg, hsl(0 0% 100%));
+      --wa-color-surface-raised: var(--tc-muted, hsl(0 0% 96.1%));
+      --wa-color-surface-border: var(--tc-border, hsl(0 0% 89.8%));
+      --wa-color-text-normal: var(--tc-fg, hsl(0 0% 9%));
+      --wa-color-text-quiet: var(--tc-muted-fg, hsl(0 0% 45.1%));
+      --wa-color-text-link: var(--tc-fg, hsl(0 0% 9%));
+      --wa-color-brand-fill-loud: var(--tc-fg, hsl(0 0% 9%));
       --wa-color-brand-on-loud: hsl(0 0% 98%);
-      --wa-color-focus: var(--dc-ring, hsl(0 0% 9%));
-      --wa-font-sans: var(--dc-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+      --wa-color-focus: var(--tc-ring, hsl(0 0% 9%));
+      --wa-font-sans: var(--tc-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
       --wa-font-mono: var(--font-family-mono, SFMono-Regular, Consolas, Menlo, monospace);
     }
 
