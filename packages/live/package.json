@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/live",
+  "name": "@docmd/live",
   "version": "0.5.1",
   "description": "Browser-based editor engine for docmd.",
   "bin": {
@@ -16,10 +16,10 @@
     "src/build.js"
   ],
   "dependencies": {
-    "@svallory/parser": "workspace:*",
-    "@svallory/plugin-mermaid": "workspace:*",
-    "@svallory/themes": "workspace:*",
-    "@svallory/ui": "workspace:*",
+    "@docmd/plugin-mermaid": "workspace:*",
+    "@docmd/themes": "workspace:*",
+    "@svallory/docmd-parser": "workspace:*",
+    "@svallory/docmd-ui": "workspace:*",
     "buffer": "^6.0.3",
     "esbuild": "^0.27.3"
   },

@@ -16,7 +16,7 @@ const path = require('path');
 const fs = require('../utils/fs-utils');
 const esbuild = require('esbuild');
 const themes = require('@docmd/themes');
-const ui = require('@docmd/ui');
+const ui = require('@svallory/docmd-ui');
 
 const COPYRIGHT_BANNER = `/*!
  * docmd (v${require('../../package.json').version})

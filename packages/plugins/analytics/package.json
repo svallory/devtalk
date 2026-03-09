@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-analytics",
+  "name": "@docmd/plugin-analytics",
   "version": "0.5.1",
   "description": "Analytics injection plugin for docmd.",
   "main": "index.js",

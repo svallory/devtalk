@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-llms",
+  "name": "@docmd/plugin-llms",
   "version": "0.5.1",
   "description": "Generate llms.txt context files for AI agents from your docmd site.",
   "main": "index.js",

@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-search",
+  "name": "@docmd/plugin-search",
   "version": "0.5.1",
   "description": "Offline full-text search for docmd.",
   "main": "index.js",

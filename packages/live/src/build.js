@@ -15,7 +15,7 @@
 const path = require('path');
 const fs = require('fs/promises');
 const esbuild = require('esbuild');
-const ui = require('@docmd/ui');
+const ui = require('@svallory/docmd-ui');
 const themes = require('@docmd/themes'); // New import
 
 // Path Constants

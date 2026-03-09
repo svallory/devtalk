@@ -14,9 +14,9 @@
 
 const path = require('path');
 const fs = require('../utils/fs-utils');
-const parser = require('@docmd/parser');
-const ui = require('@docmd/ui');
-const { findPageNeighbors } = require('@docmd/parser/src/utils/navigation-helper');
+const parser = require('@svallory/docmd-parser');
+const ui = require('@svallory/docmd-ui');
+const { findPageNeighbors } = require('@svallory/docmd-parser/src/utils/navigation-helper');
 const { generateAssetTag } = require('./assets');
 
 async function renderPages({ config, srcDir, outputDir, hooks, buildHash, options }) {

@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-seo",
+  "name": "@docmd/plugin-seo",
   "version": "0.5.1",
   "description": "SEO meta tag generator for docmd.",
   "main": "index.js",

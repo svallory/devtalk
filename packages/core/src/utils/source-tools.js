@@ -22,7 +22,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createMarkdownProcessor } = require('@docmd/parser/src/markdown-processor');
+const { createMarkdownProcessor } = require('@svallory/docmd-parser/src/markdown-processor');
 
 // ---------------------------------------------------------------------------
 // Helpers

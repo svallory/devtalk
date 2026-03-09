@@ -24,43 +24,43 @@ importers:
 
   packages/_playground:
     dependencies:
-      '@svallory/core':
+      '@svallory/docmd-core':
         specifier: workspace:*
         version: link:../core
 
   packages/core:
     dependencies:
-      '@svallory/live':
+      '@docmd/live':
         specifier: workspace:*
         version: link:../live
-      '@svallory/parser':
-        specifier: workspace:*
-        version: link:../parser
-      '@svallory/plugin-analytics':
+      '@docmd/plugin-analytics':
         specifier: workspace:*
         version: link:../plugins/analytics
-      '@svallory/plugin-llms':
+      '@docmd/plugin-llms':
         specifier: workspace:*
         version: link:../plugins/llms
-      '@svallory/plugin-mermaid':
+      '@docmd/plugin-mermaid':
         specifier: workspace:*
         version: link:../plugins/mermaid
-      '@svallory/plugin-pwa':
+      '@docmd/plugin-pwa':
         specifier: workspace:*
         version: link:../plugins/pwa
-      '@svallory/plugin-search':
+      '@docmd/plugin-search':
         specifier: workspace:*
         version: link:../plugins/search
-      '@svallory/plugin-seo':
+      '@docmd/plugin-seo':
         specifier: workspace:*
         version: link:../plugins/seo
-      '@svallory/plugin-sitemap':
+      '@docmd/plugin-sitemap':
         specifier: workspace:*
         version: link:../plugins/sitemap
-      '@svallory/themes':
+      '@docmd/themes':
         specifier: workspace:*
         version: link:../themes
-      '@svallory/ui':
+      '@svallory/docmd-parser':
+        specifier: workspace:*
+        version: link:../parser
+      '@svallory/docmd-ui':
         specifier: workspace:*
         version: link:../ui
       chalk:
@@ -81,22 +81,22 @@ importers:
 
   packages/legacy:
     dependencies:
-      '@svallory/core':
+      '@svallory/docmd-core':
         specifier: workspace:*
         version: link:../core
 
   packages/live:
     dependencies:
-      '@svallory/parser':
-        specifier: workspace:*
-        version: link:../parser
-      '@svallory/plugin-mermaid':
+      '@docmd/plugin-mermaid':
         specifier: workspace:*
         version: link:../plugins/mermaid
-      '@svallory/themes':
+      '@docmd/themes':
         specifier: workspace:*
         version: link:../themes
-      '@svallory/ui':
+      '@svallory/docmd-parser':
+        specifier: workspace:*
+        version: link:../parser
+      '@svallory/docmd-ui':
         specifier: workspace:*
         version: link:../ui
       buffer:
@@ -168,13 +168,13 @@ importers:
       '@awesome.me/webawesome':
         specifier: ^3.3.1
         version: 3.3.1(@floating-ui/utils@0.2.11)(@types/react@19.2.14)
-      esbuild:
-        specifier: ^0.27.3
-        version: 0.27.3
       lit:
         specifier: ^3.3.2
         version: 3.3.2
     devDependencies:
+      esbuild:
+        specifier: ^0.27.3
+        version: 0.27.3
       markdown-it:
         specifier: ^14.1.1
         version: 14.1.1

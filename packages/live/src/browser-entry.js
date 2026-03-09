@@ -12,8 +12,8 @@
  * --------------------------------------------------------------------
  */
 
-const { createMarkdownProcessor, processContent } = require('@docmd/parser/src/markdown-processor');
-const { renderTemplate } = require('@docmd/parser/src/html-renderer');
+const { createMarkdownProcessor, processContent } = require('@svallory/docmd-parser/src/markdown-processor');
+const { renderTemplate } = require('@svallory/docmd-parser/src/html-renderer');
 const templates = require('virtual:docmd-templates');
 
 // Expose the compile function to the window.docmd global

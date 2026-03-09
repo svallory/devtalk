@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/ui",
+  "name": "@svallory/docmd-ui",
   "version": "0.5.1",
   "description": "Base UI templates and assets for docmd.",
   "main": "index.js",

@@ -68,7 +68,7 @@ async function serveStatic(req, res, rootDir) {
   // Serve dev-only API script
   if (req.url === '/__dev/docmd-api.js') {
     try {
-      const apiScriptPath = path.resolve(__dirname, '../../../node_modules/@docmd/ui/assets/js/docmd-api.js');
+      const apiScriptPath = path.resolve(__dirname, '../../../node_modules/@svallory/docmd-ui/assets/js/docmd-api.js');
       const apiScript = await fs.readFile(apiScriptPath, 'utf8');
       res.writeHead(200, { 'Content-Type': 'text/javascript' });
       res.end(apiScript);

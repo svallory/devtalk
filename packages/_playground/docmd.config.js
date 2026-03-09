@@ -1,4 +1,4 @@
-const { defineConfig } = require('@docmd/core');
+const { defineConfig } = require('@svallory/docmd-core');
 
 module.exports = defineConfig({
   title: '_playground',

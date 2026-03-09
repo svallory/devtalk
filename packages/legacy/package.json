@@ -2,12 +2,12 @@
   "private": true,
   "name": "@mgks/docmd",
   "version": "0.5.1",
-  "description": "Legacy wrapper for docmd. Please use @svallory/core.",
+  "description": "Legacy wrapper for docmd. Please use @svallory/docmd-core.",
   "bin": {
     "docmd": "bin/docmd.js"
   },
   "dependencies": {
-    "@svallory/core": "workspace:*"
+    "@svallory/docmd-core": "workspace:*"
   },
   "keywords": [
     "docmd",

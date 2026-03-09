@@ -14,7 +14,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const { validateConfig } = require('@docmd/parser');
+const { validateConfig } = require('@svallory/docmd-parser');
 const { normalizeConfig } = require('./config-schema');
 const { buildAutoNav } = require('./auto-router');
 const chalk = require('chalk');

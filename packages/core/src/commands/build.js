@@ -179,8 +179,8 @@ async function buildSite(configPath, opts = {}) {
     }
 
     // --- 3. GENERATE CUSTOM 404 PAGE ---
-    const { renderTemplate } = require('@docmd/parser/src/html-renderer');
-    const ui = require('@docmd/ui');
+    const { renderTemplate } = require('@svallory/docmd-parser/src/html-renderer');
+    const ui = require('@svallory/docmd-ui');
     
     const notFoundTemplatePath = path.join(ui.getTemplatesDir(), '404.ejs');
     let notFoundTemplateStr = '';

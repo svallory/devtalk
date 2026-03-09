@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/themes",
+  "name": "@docmd/themes",
   "version": "0.5.1",
   "description": "Official themes for docmd.",
   "main": "index.js",

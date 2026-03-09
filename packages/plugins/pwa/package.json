@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-pwa",
+  "name": "@docmd/plugin-pwa",
   "version": "0.5.1",
   "description": "Progressive Web App (PWA) plugin for docmd.",
   "main": "index.js",

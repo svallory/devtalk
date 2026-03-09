@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-sitemap",
+  "name": "@docmd/plugin-sitemap",
   "version": "0.5.1",
   "description": "Sitemap generator plugin for docmd.",
   "main": "index.js",

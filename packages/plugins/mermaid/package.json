@@ -1,5 +1,5 @@
 {
-  "name": "@svallory/plugin-mermaid",
+  "name": "@docmd/plugin-mermaid",
   "version": "0.5.1",
   "description": "Mermaid diagram support plugin for docmd.",
   "main": "index.js",
