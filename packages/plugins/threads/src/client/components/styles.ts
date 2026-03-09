@@ -21,6 +21,30 @@ export function injectComponentStyles(): void {
       --tc-font: var(--font-family-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     }
 
+    /* ========= Highlight colors (cycling palette) ========= */
+    .threads-highlight {
+      border-radius: 2px;
+      padding: 1px 0;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .threads-highlight:hover { opacity: 0.75; }
+
+    .threads-hl-yellow  { background: hsl(48 96% 89% / 0.6); }
+    .threads-hl-blue    { background: hsl(210 100% 88% / 0.55); }
+    .threads-hl-green   { background: hsl(142 60% 82% / 0.55); }
+    .threads-hl-pink    { background: hsl(340 80% 88% / 0.55); }
+    .threads-hl-purple  { background: hsl(270 70% 88% / 0.55); }
+    .threads-hl-orange  { background: hsl(28 100% 86% / 0.55); }
+
+    /* Matching left-border colors for thread cards */
+    .threads-border-yellow { border-left-color: hsl(48 96% 53%) !important; }
+    .threads-border-blue   { border-left-color: hsl(210 100% 55%) !important; }
+    .threads-border-green  { border-left-color: hsl(142 60% 45%) !important; }
+    .threads-border-pink   { border-left-color: hsl(340 80% 55%) !important; }
+    .threads-border-purple { border-left-color: hsl(270 70% 55%) !important; }
+    .threads-border-orange { border-left-color: hsl(28 100% 55%) !important; }
+
     /* ========= Layout: fixed right sidebar column ========= */
     .tc-sidebar-column {
       position: fixed;
@@ -354,6 +378,7 @@ export function injectComponentStyles(): void {
 
     /* ========= Server-rendered thread card ========= */
     .threads-thread {
+      margin: 12px 0;
       border: 1px solid var(--tc-border);
       border-left: 3px solid var(--tc-ring);
       border-radius: var(--tc-radius);

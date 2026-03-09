@@ -266,26 +266,71 @@ export class ThreadsApp extends LitElement {
     this.scanRenderedHighlights();
   }
 
+  // Color palette for highlights — cycles through these
+  private static HIGHLIGHT_COLORS = [
+    'threads-hl-yellow',
+    'threads-hl-blue',
+    'threads-hl-green',
+    'threads-hl-pink',
+    'threads-hl-purple',
+    'threads-hl-orange',
+  ];
+
   /**
-   * Scan the DOM for <mark class="threads-highlight" data-thread-id="..."> elements
-   * and attach click handlers to scroll the corresponding inline thread into view.
+   * Scan the DOM for <mark class="threads-highlight" data-thread-id="..."> elements.
+   * Assigns cycling highlight colors, moves thread cards inline after the block
+   * containing the highlight, and attaches click handlers.
    */
   private scanRenderedHighlights(): void {
     const marks = document.querySelectorAll<HTMLElement>('mark.threads-highlight[data-thread-id]');
+    const BLOCK_TAGS = new Set(['P', 'DIV', 'LI', 'BLOCKQUOTE', 'PRE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'TABLE']);
+    let colorIndex = 0;
+
     for (const mark of marks) {
       const threadId = mark.dataset.threadId;
       if (!threadId) continue;
 
+      // 1. Assign cycling highlight color
+      const colorClass = ThreadsApp.HIGHLIGHT_COLORS[colorIndex % ThreadsApp.HIGHLIGHT_COLORS.length];
+      mark.classList.add(colorClass);
+      colorIndex++;
+
+      // 2. Move thread card from the bottom threads-sidebar to after the enclosing block
+      const threadEl = document.querySelector<HTMLElement>(`.threads-thread[data-thread-id="${threadId}"]`);
+      if (threadEl) {
+        // Apply matching border color
+        threadEl.classList.add(colorClass.replace('threads-hl-', 'threads-border-'));
+
+        // Find the enclosing block element of the highlight
+        let blockEl: Element | null = mark;
+        while (blockEl && blockEl !== document.body) {
+          if (blockEl instanceof HTMLElement && BLOCK_TAGS.has(blockEl.tagName)) {
+            break;
+          }
+          blockEl = blockEl.parentElement;
+        }
+
+        if (blockEl && blockEl !== document.body) {
+          blockEl.insertAdjacentElement('afterend', threadEl);
+        }
+      }
+
+      // 3. Click handler: scroll to thread and flash
       mark.style.cursor = 'pointer';
       mark.addEventListener('click', () => {
-        // Scroll to the inline thread element rendered by the containers
-        const threadEl = document.querySelector(`.threads-thread[data-thread-id="${threadId}"]`);
-        if (threadEl) {
-          threadEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          threadEl.classList.add('threads-thread--flash');
-          setTimeout(() => threadEl.classList.remove('threads-thread--flash'), 2000);
+        const el = document.querySelector(`.threads-thread[data-thread-id="${threadId}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('threads-thread--flash');
+          setTimeout(() => el.classList.remove('threads-thread--flash'), 2000);
         }
       });
+    }
+
+    // Hide the now-empty threads-sidebar wrapper
+    const sidebar = document.querySelector('.threads-sidebar');
+    if (sidebar instanceof HTMLElement) {
+      sidebar.style.display = 'none';
     }
   }
 
