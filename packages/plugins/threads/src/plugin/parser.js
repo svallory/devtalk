@@ -133,17 +133,43 @@ function parseThreadInfo(info) {
 
 /**
  * Parse the info string of a comment container.
- * Format: `comment "<author>" "<date>" [edited "<date>"]`
+ * Format: `comment <id> "<author>" "<date>" [edited "<date>"]`
+ * Legacy format (no id): `comment "<author>" "<date>" [edited "<date>"]`
  *
  * @param {string} info
- * @returns {{ author: string, date: string, edited_at: string|null } | null}
+ * @returns {{ id: string|null, author: string, date: string, edited_at: string|null } | null}
  */
 function parseCommentInfo(info) {
+  // New format with ID: comment <id> "<author>" "<date>" [edited "<date>"]
+  const editedWithIdMatch = info.match(
+    /^comment\s+(\S+)\s+"([^"]+)"\s+"([^"]+)"\s+edited\s+"([^"]+)"$/
+  );
+  if (editedWithIdMatch) {
+    return {
+      id: editedWithIdMatch[1],
+      author: editedWithIdMatch[2],
+      date: editedWithIdMatch[3],
+      edited_at: editedWithIdMatch[4],
+    };
+  }
+
+  const simpleWithIdMatch = info.match(/^comment\s+(\S+)\s+"([^"]+)"\s+"([^"]+)"$/);
+  if (simpleWithIdMatch) {
+    return {
+      id: simpleWithIdMatch[1],
+      author: simpleWithIdMatch[2],
+      date: simpleWithIdMatch[3],
+      edited_at: null,
+    };
+  }
+
+  // Legacy format without ID: comment "<author>" "<date>" [edited "<date>"]
   const editedMatch = info.match(
     /^comment\s+"([^"]+)"\s+"([^"]+)"\s+edited\s+"([^"]+)"$/
   );
   if (editedMatch) {
     return {
+      id: null,
       author: editedMatch[1],
       date: editedMatch[2],
       edited_at: editedMatch[3],
@@ -153,6 +179,7 @@ function parseCommentInfo(info) {
   const simpleMatch = info.match(/^comment\s+"([^"]+)"\s+"([^"]+)"$/);
   if (simpleMatch) {
     return {
+      id: null,
       author: simpleMatch[1],
       date: simpleMatch[2],
       edited_at: null,
@@ -286,7 +313,7 @@ function parseThreadsFromContent(markdownContent) {
       const { body, reactions } = parseCommentContent(cc.contentLines);
 
       comments.push({
-        id: generateCommentId(),
+        id: commentInfo.id || generateCommentId(),
         thread_id: threadInfo.id,
         author: commentInfo.author,
         date: commentInfo.date,
@@ -328,7 +355,7 @@ function serializeThreadsBlock(threads) {
 
     for (let ci = 0; ci < thread.comments.length; ci++) {
       const comment = thread.comments[ci];
-      let commentLine = `    ::: comment "${comment.author}" "${comment.date}"`;
+      let commentLine = `    ::: comment ${comment.id} "${comment.author}" "${comment.date}"`;
       if (comment.edited_at) {
         commentLine += ` edited "${comment.edited_at}"`;
       }
