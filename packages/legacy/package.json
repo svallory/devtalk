@@ -1,12 +1,13 @@
 {
+  "private": true,
   "name": "@mgks/docmd",
   "version": "0.5.1",
-  "description": "Legacy wrapper for docmd. Please use @docmd/core.",
+  "description": "Legacy wrapper for docmd. Please use @svallory/core.",
   "bin": {
     "docmd": "bin/docmd.js"
   },
   "dependencies": {
-    "@docmd/core": "workspace:*"
+    "@svallory/core": "workspace:*"
   },
   "keywords": [
     "docmd",
@@ -40,5 +41,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

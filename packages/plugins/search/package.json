@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/plugin-search",
+  "name": "@svallory/plugin-search",
   "version": "0.5.1",
   "description": "Offline full-text search for docmd.",
   "main": "index.js",
@@ -34,5 +34,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

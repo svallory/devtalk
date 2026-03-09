@@ -204,7 +204,7 @@ const defaultPackageJson = {
     "preview": "npx serve site"
   },
   dependencies: {
-    "@docmd/core": `^${version}`
+    "@svallory/core": `^${version}`
   }
 };
 

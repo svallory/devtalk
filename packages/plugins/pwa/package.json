@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/plugin-pwa",
+  "name": "@svallory/plugin-pwa",
   "version": "0.5.1",
   "description": "Progressive Web App (PWA) plugin for docmd.",
   "main": "index.js",
@@ -31,5 +31,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

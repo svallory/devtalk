@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/core",
+  "name": "@svallory/core",
   "version": "0.5.1",
   "description": "The minimalist, zero-config documentation generator.",
   "main": "index.js",
@@ -7,17 +7,17 @@
     "docmd": "bin/docmd.js"
   },
   "dependencies": {
-    "@docmd/live": "workspace:*",
-    "@docmd/parser": "workspace:*",
-    "@docmd/plugin-analytics": "workspace:*",
-    "@docmd/plugin-llms": "workspace:*",
-    "@docmd/plugin-mermaid": "workspace:*",
-    "@docmd/plugin-pwa": "workspace:*",
-    "@docmd/plugin-search": "workspace:*",
-    "@docmd/plugin-seo": "workspace:*",
-    "@docmd/plugin-sitemap": "workspace:*",
-    "@docmd/themes": "workspace:*",
-    "@docmd/ui": "workspace:*",
+    "@svallory/live": "workspace:*",
+    "@svallory/parser": "workspace:*",
+    "@svallory/plugin-analytics": "workspace:*",
+    "@svallory/plugin-llms": "workspace:*",
+    "@svallory/plugin-mermaid": "workspace:*",
+    "@svallory/plugin-pwa": "workspace:*",
+    "@svallory/plugin-search": "workspace:*",
+    "@svallory/plugin-seo": "workspace:*",
+    "@svallory/plugin-sitemap": "workspace:*",
+    "@svallory/themes": "workspace:*",
+    "@svallory/ui": "workspace:*",
     "chalk": "^4.1.2",
     "chokidar": "^3.6.0",
     "commander": "^11.1.0",
@@ -56,5 +56,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

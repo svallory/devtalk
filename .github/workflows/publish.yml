@@ -1,4 +1,4 @@
-name: Release to NPM and GitHub Packages
+name: Publish to GitHub Packages
 
 on:
   release:
@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
   packages: write
 
 jobs:
@@ -17,7 +16,7 @@ jobs:
     steps:
       # Checkout repository
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       # Install exact pnpm version (matches package.json)
       - name: Install pnpm
@@ -25,14 +24,12 @@ jobs:
 
       # Setup Node.js with pnpm cache
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@svallory'
           cache: 'pnpm'
-      
-      - name: Upgrade npm (required for OIDC)
-        run: npm install -g npm@latest
 
       # Verify versions (debug safety)
       - name: Verify versions
@@ -62,6 +59,8 @@ jobs:
       - name: Resolve workspace dependencies
         run: node scripts/resolve-ws-deps.js
 
-      # Publish to npm (OIDC trusted publishing)
-      - name: Publish to npm
+      # Publish to GitHub Packages
+      - name: Publish to GitHub Packages
         run: npm publish --workspaces --include-workspace-root=false --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

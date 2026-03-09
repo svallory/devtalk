@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/plugin-sitemap",
+  "name": "@svallory/plugin-sitemap",
   "version": "0.5.1",
   "description": "Sitemap generator plugin for docmd.",
   "main": "index.js",
@@ -30,5 +30,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

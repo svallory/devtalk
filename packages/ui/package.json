@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/ui",
+  "name": "@svallory/ui",
   "version": "0.5.1",
   "description": "Base UI templates and assets for docmd.",
   "main": "index.js",
@@ -39,5 +39,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/live",
+  "name": "@svallory/live",
   "version": "0.5.1",
   "description": "Browser-based editor engine for docmd.",
   "bin": {
@@ -16,10 +16,10 @@
     "src/build.js"
   ],
   "dependencies": {
-    "@docmd/parser": "workspace:*",
-    "@docmd/plugin-mermaid": "workspace:*",
-    "@docmd/themes": "workspace:*",
-    "@docmd/ui": "workspace:*",
+    "@svallory/parser": "workspace:*",
+    "@svallory/plugin-mermaid": "workspace:*",
+    "@svallory/themes": "workspace:*",
+    "@svallory/ui": "workspace:*",
     "buffer": "^6.0.3",
     "esbuild": "^0.27.3"
   },
@@ -48,5 +48,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

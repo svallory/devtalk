@@ -1,5 +1,5 @@
 {
-  "name": "@docmd/parser",
+  "name": "@svallory/parser",
   "version": "0.5.1",
   "description": "Pure Markdown parsing engine for docmd.",
   "main": "src/index.js",
@@ -48,5 +48,8 @@
   },
   "homepage": "https://docmd.io",
   "funding": "https://github.com/sponsors/mgks",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
