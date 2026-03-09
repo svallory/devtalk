@@ -278,6 +278,76 @@ async function run() {
   assert(finalContent.includes('# Test Document'), 'original content preserved');
   assert(!finalContent.includes('::: threads'), 'threads block removed from file');
 
+  // ─── Test 10: add-thread with anchor → wraps quote with highlight markup ───
+  console.log('\nTest 10: add-thread with anchor (highlight creation)');
+
+  const anchorFile = 'anchor-test.md';
+  fs.writeFileSync(path.join(tempDir, anchorFile), '# Test\n\nSome important text in a paragraph.\n');
+
+  const addThreadAnchor = await handleCall('threads:add-thread', {
+    file: anchorFile,
+    author: 'alice',
+    body: 'This is important',
+    anchor: {
+      quote: 'important text',
+      prefix: 'Some ',
+      suffix: ' in a',
+      selector: 'p',
+      offset: 5,
+      blockText: 'Some important text in a paragraph.',
+    },
+  }, tempDir);
+
+  const anchorThread = addThreadAnchor.result;
+  assert(addThreadAnchor.reload === true, 'add-thread with anchor reload is true');
+  const anchorContent = fs.readFileSync(path.join(tempDir, anchorFile), 'utf8');
+  assert(anchorContent.includes(`==important text=={${anchorThread.id}}`), `Should have highlight markup. Got:\n${anchorContent}`);
+  assert(anchorContent.includes('::: threads'), 'Should have threads block');
+  const highlightIdx = anchorContent.indexOf(`==important text=={${anchorThread.id}}`);
+  const threadsBlockIdx = anchorContent.indexOf('::: threads');
+  assert(highlightIdx < threadsBlockIdx, 'Highlight should be before threads block');
+
+  // ─── Test 11: add-thread with anchor doesn't match inside threads block ───
+  console.log('\nTest 11: add-thread with anchor avoids matching inside threads block');
+
+  const anchorFile2 = 'anchor-test2.md';
+  // Write a file where the quote text appears in both body and an existing thread comment
+  fs.writeFileSync(path.join(tempDir, anchorFile2), [
+    '# Test',
+    '',
+    'Some unique phrase here.',
+    '',
+    '::: threads',
+    '### t-existing',
+    '- resolved: false',
+    '',
+    '#### c-existing',
+    '- author: bob',
+    '- date: 2026-01-01',
+    '',
+    'Some unique phrase here.',
+    '',
+    ':::',
+    '',
+  ].join('\n'));
+
+  const addThreadAnchor2 = await handleCall('threads:add-thread', {
+    file: anchorFile2,
+    author: 'alice',
+    body: 'Noting this phrase',
+    anchor: {
+      quote: 'unique phrase',
+    },
+  }, tempDir);
+
+  const anchorContent2 = fs.readFileSync(path.join(tempDir, anchorFile2), 'utf8');
+  const anchorThread2 = addThreadAnchor2.result;
+  // The highlight should appear in the body, before the threads block
+  const highlightIdx2 = anchorContent2.indexOf(`==unique phrase=={${anchorThread2.id}}`);
+  const threadsBlockIdx2 = anchorContent2.indexOf('::: threads');
+  assert(highlightIdx2 >= 0, `Highlight markup should exist. Got:\n${anchorContent2}`);
+  assert(highlightIdx2 < threadsBlockIdx2, 'Highlight should be in body, not in threads block');
+
   // ─── Cleanup ───
   fs.rmSync(tempDir, { recursive: true });
 

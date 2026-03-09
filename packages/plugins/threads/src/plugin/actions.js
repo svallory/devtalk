@@ -120,7 +120,35 @@ const actions = {
     };
 
     threads.push(thread);
-    await writeBack(file, content, threads, ctx);
+
+    // If anchor has a quote, wrap it with highlight markup in the document body
+    let contentForWrite = content;
+    if (anchor && anchor.quote) {
+      const quote = anchor.quote;
+      // Split at ::: threads boundary to avoid matching inside the threads block
+      const threadsIdx = content.indexOf('\n::: threads');
+      let bodyContent, rest;
+      if (threadsIdx >= 0) {
+        bodyContent = content.slice(0, threadsIdx);
+        rest = content.slice(threadsIdx);
+      } else {
+        bodyContent = content;
+        rest = '';
+      }
+
+      const quoteIdx = bodyContent.indexOf(quote);
+      if (quoteIdx >= 0) {
+        bodyContent =
+          bodyContent.slice(0, quoteIdx) +
+          `==${quote}=={${threadId}}` +
+          bodyContent.slice(quoteIdx + quote.length);
+      }
+
+      contentForWrite = bodyContent + rest;
+    }
+
+    const updated = parser.replaceThreadsBlock(contentForWrite, threads);
+    await ctx.writeFile(file, updated);
     return thread;
   },
 
