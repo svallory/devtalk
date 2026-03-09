@@ -399,23 +399,33 @@ export function injectComponentStyles(): void {
 
     /* ========= Server-rendered reactions ========= */
     .threads-reactions {
+      margin-top: 8px;
+    }
+    .threads-reactions ul {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 6px;
       padding: 0;
+      margin: 0;
       list-style: none;
-      font-size: 13px;
     }
     .threads-reactions li {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
-      padding: 2px 8px;
+      gap: 4px;
+      padding: 4px 10px 4px 8px;
       border-radius: 999px;
       border: 1px solid var(--tc-border);
-      background: var(--tc-bg);
-      font-size: 12px;
+      background: var(--tc-muted);
+      font-size: 13px;
+      line-height: 1;
+      cursor: default;
+      transition: background 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .threads-reactions li:hover {
+      background: var(--tc-accent);
+      border-color: var(--tc-input);
     }
 
     /* ========= Heading discussion button (hidden) ========= */
