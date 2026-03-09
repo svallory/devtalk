@@ -8,6 +8,7 @@ import { initThemeBridge } from '../lib/theme.ts';
 
 import './threads-popover.ts';
 import './threads-inline-editor.ts';
+import './threads-identity.ts';
 
 import '@awesome.me/webawesome/dist/components/dialog/dialog.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
@@ -596,6 +597,8 @@ export class ThreadsApp extends LitElement {
 
   override render() {
     return html`
+      <threads-identity></threads-identity>
+
       <threads-popover
         ?active=${this.popoverActive}
         .x=${this.popoverX}

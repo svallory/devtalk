@@ -659,6 +659,110 @@ export function injectComponentStyles(): void {
       100% { outline: 2px solid transparent; outline-offset: 8px; }
     }
 
+    /* ========= Identity button (top-right) ========= */
+    threads-identity {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      font-family: var(--tc-font);
+    }
+    .threads-identity-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--tc-border);
+      background: var(--tc-card);
+      cursor: pointer;
+      padding: 0;
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .threads-identity-btn:hover {
+      border-color: var(--tc-ring);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--tc-ring) 20%, transparent);
+    }
+    .threads-identity-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    .threads-identity-initial {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tc-fg);
+      line-height: 1;
+    }
+
+    /* ========= Identity dialog form ========= */
+    .threads-identity-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-family: var(--tc-font);
+    }
+    .threads-identity-preview {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .threads-identity-preview-img {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--tc-border);
+    }
+    .threads-identity-preview-placeholder {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 2px solid var(--tc-border);
+      background: var(--tc-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--tc-muted-fg);
+    }
+    .threads-identity-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--tc-fg);
+    }
+    .threads-identity-input {
+      padding: 6px 10px;
+      border: 1px solid var(--tc-border);
+      border-radius: var(--tc-radius);
+      background: var(--tc-bg);
+      color: var(--tc-fg);
+      font-family: var(--tc-font);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .threads-identity-input:focus {
+      border-color: var(--tc-ring);
+    }
+    .threads-identity-hint {
+      font-size: 11px;
+      color: var(--tc-muted-fg);
+      margin: 0;
+      line-height: 1.4;
+    }
+    .threads-identity-hint a {
+      color: var(--tc-muted-fg);
+      text-decoration: underline;
+    }
+
     /* ========= Hide sidebar (disabled for now) ========= */
     .tc-sidebar-column { display: none !important; }
     .tc-has-sidebar { padding-right: 0 !important; }
