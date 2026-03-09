@@ -9,6 +9,7 @@ export interface Thread {
 export interface Comment {
   id: string;
   thread_id: string;
+  parent_id: string | null;
   author: string;
   date: string;
   edited_at: string | null;
@@ -40,6 +41,7 @@ export interface CreateThreadPayload {
 export interface AddCommentPayload {
   file: string;
   threadId: string;
+  parentId?: string | null;
   author: string;
   body: string;
 }

@@ -50,35 +50,25 @@ function parseThreadInfo(info) {
 
 /**
  * Parse a comment info string.
- * Format: `[<id>] "<author>" "<date>" [edited "<date>"]`
+ * Format: `[<id>] "<author>" "<date>" [reply-to <parentId>] [edited "<date>"]`
  *
  * @param {string} info
- * @returns {{ id: string|null, author: string, date: string, editedAt: string|null }}
+ * @returns {{ id: string|null, parentId: string|null, author: string, date: string, editedAt: string|null }}
  */
 function parseCommentInfo(info) {
   const trimmed = info.trim();
 
-  // New format with ID: <id> "<author>" "<date>" edited "<date>"
-  const editedWithIdMatch = trimmed.match(
-    /^(\S+)\s+"([^"]+)"\s+"([^"]+)"\s+edited\s+"([^"]+)"$/
+  // Format with ID, optional reply-to, optional edited
+  const fullMatch = trimmed.match(
+    /^(\S+)\s+"([^"]+)"\s+"([^"]+)"(?:\s+reply-to\s+(\S+))?(?:\s+edited\s+"([^"]+)")?$/
   );
-  if (editedWithIdMatch) {
+  if (fullMatch) {
     return {
-      id: editedWithIdMatch[1],
-      author: editedWithIdMatch[2],
-      date: editedWithIdMatch[3],
-      editedAt: editedWithIdMatch[4],
-    };
-  }
-
-  // New format with ID: <id> "<author>" "<date>"
-  const simpleWithIdMatch = trimmed.match(/^(\S+)\s+"([^"]+)"\s+"([^"]+)"$/);
-  if (simpleWithIdMatch) {
-    return {
-      id: simpleWithIdMatch[1],
-      author: simpleWithIdMatch[2],
-      date: simpleWithIdMatch[3],
-      editedAt: null,
+      id: fullMatch[1],
+      author: fullMatch[2],
+      date: fullMatch[3],
+      parentId: fullMatch[4] || null,
+      editedAt: fullMatch[5] || null,
     };
   }
 
@@ -89,6 +79,7 @@ function parseCommentInfo(info) {
   if (editedMatch) {
     return {
       id: null,
+      parentId: null,
       author: editedMatch[1],
       date: editedMatch[2],
       editedAt: editedMatch[3],
@@ -100,13 +91,14 @@ function parseCommentInfo(info) {
   if (simpleMatch) {
     return {
       id: null,
+      parentId: null,
       author: simpleMatch[1],
       date: simpleMatch[2],
       editedAt: null,
     };
   }
 
-  return { id: null, author: 'unknown', date: '', editedAt: null };
+  return { id: null, parentId: null, author: 'unknown', date: '', editedAt: null };
 }
 
 /**
@@ -144,9 +136,11 @@ function setup(md) {
       const info = tokens[idx].info.trim();
       const parsed = parseCommentInfo(info);
       const idAttr = parsed.id ? ` data-comment-id="${parsed.id}"` : '';
+      const parentAttr = parsed.parentId ? ` data-parent-id="${parsed.parentId}"` : '';
       const editedAttr = parsed.editedAt ? ` data-edited="${parsed.editedAt}"` : '';
+      const replyClass = parsed.parentId ? ' threads-comment--reply' : '';
       return (
-        `<div class="threads-comment"${idAttr} data-author="${parsed.author}" data-date="${parsed.date}"${editedAttr}>` +
+        `<div class="threads-comment${replyClass}"${idAttr}${parentAttr} data-author="${parsed.author}" data-date="${parsed.date}"${editedAttr}>` +
         `<div class="threads-comment__meta"><strong>${parsed.author}</strong> &middot; ${parsed.date}</div>` +
         `<div class="threads-comment__body">\n`
       );

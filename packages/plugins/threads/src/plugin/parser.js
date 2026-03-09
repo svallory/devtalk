@@ -133,33 +133,25 @@ function parseThreadInfo(info) {
 
 /**
  * Parse the info string of a comment container.
- * Format: `comment <id> "<author>" "<date>" [edited "<date>"]`
+ * Format: `comment <id> "<author>" "<date>" [reply-to <parentId>] [edited "<date>"]`
  * Legacy format (no id): `comment "<author>" "<date>" [edited "<date>"]`
  *
  * @param {string} info
- * @returns {{ id: string|null, author: string, date: string, edited_at: string|null } | null}
+ * @returns {{ id: string|null, parent_id: string|null, author: string, date: string, edited_at: string|null } | null}
  */
 function parseCommentInfo(info) {
-  // New format with ID: comment <id> "<author>" "<date>" [edited "<date>"]
-  const editedWithIdMatch = info.match(
-    /^comment\s+(\S+)\s+"([^"]+)"\s+"([^"]+)"\s+edited\s+"([^"]+)"$/
+  // Format with ID, optional reply-to, optional edited
+  // comment <id> "<author>" "<date>" [reply-to <parentId>] [edited "<date>"]
+  const fullMatch = info.match(
+    /^comment\s+(\S+)\s+"([^"]+)"\s+"([^"]+)"(?:\s+reply-to\s+(\S+))?(?:\s+edited\s+"([^"]+)")?$/
   );
-  if (editedWithIdMatch) {
+  if (fullMatch) {
     return {
-      id: editedWithIdMatch[1],
-      author: editedWithIdMatch[2],
-      date: editedWithIdMatch[3],
-      edited_at: editedWithIdMatch[4],
-    };
-  }
-
-  const simpleWithIdMatch = info.match(/^comment\s+(\S+)\s+"([^"]+)"\s+"([^"]+)"$/);
-  if (simpleWithIdMatch) {
-    return {
-      id: simpleWithIdMatch[1],
-      author: simpleWithIdMatch[2],
-      date: simpleWithIdMatch[3],
-      edited_at: null,
+      id: fullMatch[1],
+      author: fullMatch[2],
+      date: fullMatch[3],
+      parent_id: fullMatch[4] || null,
+      edited_at: fullMatch[5] || null,
     };
   }
 
@@ -170,6 +162,7 @@ function parseCommentInfo(info) {
   if (editedMatch) {
     return {
       id: null,
+      parent_id: null,
       author: editedMatch[1],
       date: editedMatch[2],
       edited_at: editedMatch[3],
@@ -180,6 +173,7 @@ function parseCommentInfo(info) {
   if (simpleMatch) {
     return {
       id: null,
+      parent_id: null,
       author: simpleMatch[1],
       date: simpleMatch[2],
       edited_at: null,
@@ -315,6 +309,7 @@ function parseThreadsFromContent(markdownContent) {
       comments.push({
         id: commentInfo.id || generateCommentId(),
         thread_id: threadInfo.id,
+        parent_id: commentInfo.parent_id || null,
         author: commentInfo.author,
         date: commentInfo.date,
         edited_at: commentInfo.edited_at,
@@ -356,6 +351,9 @@ function serializeThreadsBlock(threads) {
     for (let ci = 0; ci < thread.comments.length; ci++) {
       const comment = thread.comments[ci];
       let commentLine = `    ::: comment ${comment.id} "${comment.author}" "${comment.date}"`;
+      if (comment.parent_id) {
+        commentLine += ` reply-to ${comment.parent_id}`;
+      }
       if (comment.edited_at) {
         commentLine += ` edited "${comment.edited_at}"`;
       }

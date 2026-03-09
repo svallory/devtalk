@@ -33,7 +33,7 @@ export async function createThread(payload: {
 
 export async function addComment(
   threadId: string,
-  payload: { author: string; body: string },
+  payload: { author: string; body: string; parentId?: string | null },
 ): Promise<Comment> {
   return docmd.call('threads:add-comment', {
     file: getSourceFile(),

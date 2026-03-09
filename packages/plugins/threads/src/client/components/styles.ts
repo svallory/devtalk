@@ -1,8 +1,8 @@
 export function injectComponentStyles(): void {
-  if (document.getElementById('tc-styles')) return;
+  if (document.getElementById("tc-styles")) return;
 
-  const style = document.createElement('style');
-  style.id = 'tc-styles';
+  const style = document.createElement("style");
+  style.id = "tc-styles";
   style.textContent = `
     /* ========= Design tokens ========= */
     :root {
@@ -30,12 +30,12 @@ export function injectComponentStyles(): void {
     }
     .threads-highlight:hover { opacity: 0.75; }
 
-    .threads-hl-yellow  { background: hsl(48 96% 89% / 0.6); }
-    .threads-hl-blue    { background: hsl(210 100% 88% / 0.55); }
-    .threads-hl-green   { background: hsl(142 60% 82% / 0.55); }
-    .threads-hl-pink    { background: hsl(340 80% 88% / 0.55); }
-    .threads-hl-purple  { background: hsl(270 70% 88% / 0.55); }
-    .threads-hl-orange  { background: hsl(28 100% 86% / 0.55); }
+    .threads-hl-yellow  { background: hsl(48 96% 89% / 0.6);  border-bottom: 2px solid hsl(48 96% 53%); }
+    .threads-hl-blue    { background: hsl(210 100% 88% / 0.55); border-bottom: 2px solid hsl(210 100% 55%); }
+    .threads-hl-green   { background: hsl(142 60% 82% / 0.55); border-bottom: 2px solid hsl(142 60% 45%); }
+    .threads-hl-pink    { background: hsl(340 80% 88% / 0.55); border-bottom: 2px solid hsl(340 80% 55%); }
+    .threads-hl-purple  { background: hsl(270 70% 88% / 0.55); border-bottom: 2px solid hsl(270 70% 55%); }
+    .threads-hl-orange  { background: hsl(28 100% 86% / 0.55); border-bottom: 2px solid hsl(28 100% 55%); }
 
     /* Matching left-border colors for thread cards */
     .threads-border-yellow { border-left-color: hsl(48 96% 53%) !important; }
@@ -403,6 +403,8 @@ export function injectComponentStyles(): void {
       border-top: 1px solid var(--tc-border);
     }
     .threads-comment__meta {
+      display: flex;
+      align-items: center;
       font-size: 12px;
       color: var(--tc-muted-fg);
       margin-bottom: 4px;
@@ -410,6 +412,13 @@ export function injectComponentStyles(): void {
     .threads-comment__meta strong {
       color: var(--tc-fg);
       font-weight: 500;
+    }
+    .threads-comment__actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: auto;
+      flex-shrink: 0;
     }
     .threads-comment__body {
       color: var(--tc-fg);
@@ -422,17 +431,44 @@ export function injectComponentStyles(): void {
       margin-bottom: 0;
     }
 
-    /* ========= Thread footer & reply button ========= */
+    /* ========= Collapsed thread ========= */
+    .threads-thread__summary {
+      display: none;
+      font-size: 13px;
+      color: var(--tc-muted-fg);
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .threads-thread--collapsed .threads-thread__summary {
+      display: block;
+    }
+    .threads-thread--collapsed .threads-comment,
+    .threads-thread--collapsed .threads-replies {
+      display: none;
+    }
+    .threads-thread--collapsed .threads-new-comment-btn {
+      display: none;
+    }
+    .threads-thread--collapsed .threads-thread__footer {
+      border-top: none;
+    }
+
+    /* ========= Thread footer & buttons ========= */
     .threads-thread__footer {
+      display: flex;
+      align-items: center;
       padding: 6px 14px 8px;
       border-top: 1px solid var(--tc-border);
     }
-    .threads-reply-btn {
+    .threads-new-comment-btn {
       display: inline-flex;
       align-items: center;
       gap: 5px;
       padding: 4px 10px;
-      border: none;
+      border: 1px dashed var(--tc-border);
       background: transparent;
       color: var(--tc-muted-fg);
       font-family: var(--tc-font);
@@ -440,9 +476,46 @@ export function injectComponentStyles(): void {
       font-weight: 500;
       cursor: pointer;
       border-radius: var(--tc-radius);
-      transition: color 0.15s, background 0.15s;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
     }
-    .threads-reply-btn:hover {
+    .threads-new-comment-btn:hover {
+      color: var(--tc-fg);
+      border-color: var(--tc-fg);
+      background: var(--tc-muted);
+    }
+
+    /* ========= Nested replies ========= */
+    .threads-replies {
+      margin-left: 8px;
+      border-left: 2px solid var(--tc-border);
+    }
+    .threads-comment--reply {
+      padding-left: 12px !important;
+      padding-right: 0 !important;
+    }
+
+    /* ========= Per-comment reply button ========= */
+    .threads-comment-reply-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      background: transparent;
+      border: none;
+      color: var(--tc-muted-fg);
+      font-family: var(--tc-font);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, background 0.15s;
+      border-radius: var(--tc-radius);
+    }
+    .threads-comment:hover .threads-comment-reply-btn {
+      opacity: 0.6;
+    }
+    .threads-comment-reply-btn:hover {
+      opacity: 1 !important;
       color: var(--tc-fg);
       background: var(--tc-muted);
     }
@@ -504,18 +577,28 @@ export function injectComponentStyles(): void {
       background: var(--tc-accent);
     }
 
+    /* ========= Heading wrapper for New Thread button ========= */
+    .threads-heading-wrap {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+    .threads-heading-wrap .threads-new-thread-btn {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
     /* ========= New Thread button ========= */
     .threads-new-thread-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      margin: 8px 0 16px;
+      gap: 4px;
+      padding: 3px 10px;
       font-family: var(--tc-font);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--tc-muted-fg);
-      background: var(--tc-card);
+      background: transparent;
       border: 1px dashed var(--tc-border);
       border-radius: var(--tc-radius);
       cursor: pointer;
@@ -524,6 +607,46 @@ export function injectComponentStyles(): void {
     .threads-new-thread-btn:hover {
       color: var(--tc-fg);
       border-color: var(--tc-fg);
+      background: var(--tc-muted);
+    }
+
+    /* ========= Delete button (on comment meta) ========= */
+    .threads-delete-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 6px;
+      background: transparent;
+      border: none;
+      color: var(--tc-muted-fg);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s, background 0.15s;
+      border-radius: var(--tc-radius);
+    }
+    .threads-comment:hover .threads-delete-btn {
+      opacity: 0.6;
+    }
+    .threads-delete-btn:hover {
+      opacity: 1 !important;
+      color: hsl(0 72% 51%);
+      background: hsl(0 72% 51% / 0.08);
+    }
+
+    /* ========= Collapse/expand toggle button ========= */
+    .threads-collapse-btn {
+      display: inline-flex;
+      align-items: center;
+      margin-left: auto;
+      padding: 3px 6px;
+      background: transparent;
+      border: none;
+      color: var(--tc-muted-fg);
+      cursor: pointer;
+      border-radius: var(--tc-radius);
+      transition: color 0.15s, background 0.15s;
+    }
+    .threads-collapse-btn:hover {
+      color: var(--tc-fg);
       background: var(--tc-muted);
     }
 

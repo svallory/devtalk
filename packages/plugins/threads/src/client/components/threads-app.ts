@@ -60,70 +60,54 @@ export class ThreadsApp extends LitElement {
   private getContentArea(): Element | null {
     return document.querySelector('[data-docmd-content]')
       || document.querySelector('.docmd-content')
+      || document.querySelector('.main-content')
       || document.querySelector('article')
       || document.querySelector('main');
   }
 
   /**
-   * Find the insertion point for a new top-level thread.
-   * If the first or second child of the content area is a heading, insert after it.
-   * Otherwise insert at the very top.
-   */
-  private findNewThreadInsertionPoint(): { mode: 'after'; el: Element } | { mode: 'prepend'; el: Element } | null {
-    const contentArea = this.getContentArea();
-    if (!contentArea) return null;
-
-    // Get the direct children that are elements (skip text nodes, whitespace)
-    const children = Array.from(contentArea.children);
-    if (children.length === 0) return { mode: 'prepend', el: contentArea };
-
-    const HEADING_TAGS = new Set(['H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
-
-    // Check first two elements for a heading
-    for (let i = 0; i < Math.min(2, children.length); i++) {
-      if (HEADING_TAGS.has(children[i].tagName)) {
-        return { mode: 'after', el: children[i] };
-      }
-    }
-
-    return { mode: 'prepend', el: contentArea };
-  }
-
-  /**
-   * Inject a "New Thread" button at the top of the content area.
+   * Inject a "New Thread" button into every heading in the content area.
+   * Each button is right-aligned on the same line as the heading text.
    */
   private injectNewThreadButton(): void {
-    // Remove existing button if present (e.g. after reload)
-    document.querySelector('.threads-new-thread-btn')?.remove();
-
-    const insertionPoint = this.findNewThreadInsertionPoint();
-    if (!insertionPoint) return;
-
-    const btn = document.createElement('button');
-    btn.className = 'threads-new-thread-btn';
-    btn.innerHTML = `<wa-icon name="plus" style="font-size:14px;"></wa-icon> New Thread`;
-    btn.title = 'Start a new discussion thread';
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.startNewThread();
+    // Remove existing buttons (e.g. after reload)
+    document.querySelectorAll('.threads-new-thread-btn').forEach(el => el.remove());
+    // Remove wrapper classes from headings
+    document.querySelectorAll('.threads-heading-wrap').forEach(el => {
+      el.classList.remove('threads-heading-wrap');
     });
 
-    if (insertionPoint.mode === 'after') {
-      insertionPoint.el.insertAdjacentElement('afterend', btn);
-    } else {
-      insertionPoint.el.insertBefore(btn, insertionPoint.el.firstChild);
+    const contentArea = this.getContentArea();
+    if (!contentArea) return;
+
+    const HEADING_TAGS = new Set(['H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+    // Only target direct children of the content area — avoids TOC, sidebar headings, etc.
+    const headings = Array.from(contentArea.children).filter(el => HEADING_TAGS.has(el.tagName));
+
+    for (const heading of headings) {
+      // Only target direct-ish headings inside the content area
+      if (!HEADING_TAGS.has(heading.tagName)) continue;
+
+      heading.classList.add('threads-heading-wrap');
+
+      const btn = document.createElement('button');
+      btn.className = 'threads-new-thread-btn';
+      btn.innerHTML = `<wa-icon name="plus" style="font-size:14px;"></wa-icon> New Thread`;
+      btn.title = 'Start a new discussion thread';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.startNewThread(heading);
+      });
+      heading.appendChild(btn);
     }
   }
 
   /**
-   * Start a new top-level thread by opening an inline editor at the insertion point.
+   * Start a new top-level thread by opening an inline editor after the given heading.
    */
-  private startNewThread(): void {
+  private startNewThread(heading: Element): void {
     this.removeInlineEditor();
-
-    const insertionPoint = this.findNewThreadInsertionPoint();
-    if (!insertionPoint) return;
 
     const editor = document.createElement('threads-inline-editor') as any;
     editor.quote = '';
@@ -150,11 +134,7 @@ export class ThreadsApp extends LitElement {
 
     editor.addEventListener('inline-cancel', () => this.removeInlineEditor());
 
-    if (insertionPoint.mode === 'after') {
-      insertionPoint.el.insertAdjacentElement('afterend', editor);
-    } else {
-      insertionPoint.el.insertBefore(editor, insertionPoint.el.firstChild);
-    }
+    heading.insertAdjacentElement('afterend', editor);
     this.inlineEditorEl = editor;
   }
 
@@ -330,45 +310,197 @@ export class ThreadsApp extends LitElement {
     // 4. Inject reply buttons into all thread cards
     this.injectReplyButtons();
 
-    // Hide the now-empty threads-sidebar wrapper
+    // Hide the threads-sidebar only if all threads were moved out (to inline positions)
     const sidebar = document.querySelector('.threads-sidebar');
     if (sidebar instanceof HTMLElement) {
-      sidebar.style.display = 'none';
+      const remainingThreads = sidebar.querySelectorAll('.threads-thread');
+      if (remainingThreads.length === 0) {
+        sidebar.style.display = 'none';
+      }
     }
   }
 
   /**
-   * Add a "Reply" button to the bottom of each .threads-thread card.
+   * Enhance thread cards: nest replies under parents, add per-comment reply & delete buttons,
+   * and a "+ New Comment" footer button for top-level comments.
    */
   private injectReplyButtons(): void {
     const threads = document.querySelectorAll<HTMLElement>('.threads-thread[data-thread-id]');
     for (const threadEl of threads) {
-      // Skip if already has a reply button
-      if (threadEl.querySelector('.threads-reply-btn')) continue;
+      // Skip if already enhanced
+      if (threadEl.querySelector('.threads-new-comment-btn')) continue;
 
       const threadId = threadEl.dataset.threadId;
       if (!threadId) continue;
 
+      // Nest replies under their parent comments
+      this.nestReplies(threadEl);
+
+      // Add per-comment reply + delete buttons
+      const allComments = threadEl.querySelectorAll<HTMLElement>('.threads-comment');
+      const totalComments = allComments.length;
+      for (const commentEl of allComments) {
+        const commentId = commentEl.dataset.commentId;
+        if (!commentId) continue;
+
+        const meta = commentEl.querySelector('.threads-comment__meta');
+        if (!meta || meta.querySelector('.threads-comment__actions')) continue;
+
+        // Actions container — pushed to the right via margin-left: auto
+        const actions = document.createElement('div');
+        actions.className = 'threads-comment__actions';
+
+        // Reply button
+        const replyBtn = document.createElement('button');
+        replyBtn.className = 'threads-comment-reply-btn';
+        replyBtn.innerHTML = `<wa-icon name="reply" style="font-size:13px;"></wa-icon> Reply`;
+        replyBtn.title = 'Reply to this comment';
+        replyBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.openReplyEditor(threadEl, threadId, commentId);
+        });
+        actions.appendChild(replyBtn);
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = 'threads-delete-btn';
+        delBtn.innerHTML = `<wa-icon name="trash" style="font-size:13px;"></wa-icon>`;
+        delBtn.title = 'Delete comment';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (totalComments === 1) {
+            this.deleteTarget = { type: 'thread', id: threadId };
+          } else {
+            this.deleteTarget = { type: 'comment', id: commentId, threadId };
+          }
+          const dialog = this.querySelector<HTMLElement & { open: boolean }>('#delete-dialog');
+          if (dialog) dialog.open = true;
+        });
+        actions.appendChild(delBtn);
+
+        meta.appendChild(actions);
+      }
+
+      // Build collapse summary
+      const allCommentsForSummary = threadEl.querySelectorAll<HTMLElement>('.threads-comment');
+      const summary = this.buildCollapseSummary(allCommentsForSummary);
+
+      // Footer with summary (hidden when expanded), "+ New Comment", and collapse toggle
       const footer = document.createElement('div');
       footer.className = 'threads-thread__footer';
 
+      // Summary element (visible only when collapsed, via CSS)
+      const summaryEl = document.createElement('div');
+      summaryEl.className = 'threads-thread__summary';
+      summaryEl.textContent = summary;
+      footer.appendChild(summaryEl);
+
       const btn = document.createElement('button');
-      btn.className = 'threads-reply-btn';
-      btn.innerHTML = `<wa-icon name="reply" style="font-size:13px;"></wa-icon> Reply`;
+      btn.className = 'threads-new-comment-btn';
+      btn.innerHTML = `<wa-icon name="plus" style="font-size:13px;"></wa-icon> New Comment`;
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.openReplyEditor(threadEl, threadId);
+        this.openReplyEditor(threadEl, threadId, null);
       });
-
       footer.appendChild(btn);
+
+      // Collapse/expand toggle button
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'threads-collapse-btn';
+      toggleBtn.innerHTML = `<wa-icon name="chevron-up" style="font-size:14px;"></wa-icon>`;
+      toggleBtn.title = 'Collapse thread';
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isCollapsed = threadEl.classList.toggle('threads-thread--collapsed');
+        toggleBtn.innerHTML = isCollapsed
+          ? `<wa-icon name="chevron-down" style="font-size:14px;"></wa-icon>`
+          : `<wa-icon name="chevron-up" style="font-size:14px;"></wa-icon>`;
+        toggleBtn.title = isCollapsed ? 'Expand thread' : 'Collapse thread';
+      });
+      footer.appendChild(toggleBtn);
+
       threadEl.appendChild(footer);
     }
   }
 
   /**
-   * Open an inline editor at the bottom of a thread card for replying.
+   * Build a summary string like "3 comments by Alice, Bob, and 1 more".
+   * Uses only the first name of each author.
    */
-  private openReplyEditor(threadEl: HTMLElement, threadId: string): void {
+  private buildCollapseSummary(comments: NodeListOf<HTMLElement>): string {
+    const count = comments.length;
+    const authors = new Set<string>();
+    for (const c of comments) {
+      const author = c.dataset.author;
+      if (author) {
+        const firstName = author.split(/\s+/)[0];
+        authors.add(firstName);
+      }
+    }
+
+    const uniqueNames = Array.from(authors);
+    const MAX_SHOWN = 3;
+    let byPart: string;
+
+    if (uniqueNames.length === 0) {
+      byPart = '';
+    } else if (uniqueNames.length <= MAX_SHOWN) {
+      if (uniqueNames.length === 1) {
+        byPart = ` by ${uniqueNames[0]}`;
+      } else if (uniqueNames.length === 2) {
+        byPart = ` by ${uniqueNames[0]} and ${uniqueNames[1]}`;
+      } else {
+        byPart = ` by ${uniqueNames.slice(0, -1).join(', ')}, and ${uniqueNames[uniqueNames.length - 1]}`;
+      }
+    } else {
+      const shown = uniqueNames.slice(0, MAX_SHOWN);
+      const remaining = uniqueNames.length - MAX_SHOWN;
+      byPart = ` by ${shown.join(', ')}, and ${remaining} more`;
+    }
+
+    return `${count} comment${count === 1 ? '' : 's'}${byPart}`;
+  }
+
+  /**
+   * Reorganize flat comment elements into a nested structure.
+   * Comments with data-parent-id get moved into a .threads-replies container
+   * after their parent comment.
+   */
+  private nestReplies(threadEl: HTMLElement): void {
+    const comments = Array.from(threadEl.querySelectorAll<HTMLElement>('.threads-comment'));
+    // Build a map of comment ID → element
+    const commentMap = new Map<string, HTMLElement>();
+    for (const c of comments) {
+      const id = c.dataset.commentId;
+      if (id) commentMap.set(id, c);
+    }
+
+    // Move replies under their parents
+    for (const commentEl of comments) {
+      const parentId = commentEl.dataset.parentId;
+      if (!parentId) continue;
+
+      const parentEl = commentMap.get(parentId);
+      if (!parentEl) continue;
+
+      // Ensure the parent has a replies container
+      let repliesContainer = parentEl.querySelector('.threads-replies') as HTMLElement;
+      if (!repliesContainer) {
+        repliesContainer = document.createElement('div');
+        repliesContainer.className = 'threads-replies';
+        parentEl.appendChild(repliesContainer);
+      }
+
+      commentEl.classList.add('threads-comment--reply');
+      repliesContainer.appendChild(commentEl);
+    }
+  }
+
+  /**
+   * Open an inline editor for replying to a comment or adding a new top-level comment.
+   * @param parentCommentId - null for top-level comment, or comment ID to reply to
+   */
+  private openReplyEditor(threadEl: HTMLElement, threadId: string, parentCommentId: string | null): void {
     this.removeInlineEditor();
 
     const editor = document.createElement('threads-inline-editor') as any;
@@ -380,6 +512,7 @@ export class ThreadsApp extends LitElement {
         await api.addComment(threadId, {
           author,
           body: e.detail.body,
+          parentId: parentCommentId,
         });
         this.removeInlineEditor();
         if (typeof docmd !== 'undefined' && docmd.scheduleReload) {
@@ -388,19 +521,34 @@ export class ThreadsApp extends LitElement {
           await this.loadThreads();
         }
       } catch (err) {
-        console.error('[threads] Failed to add reply:', err);
+        console.error('[threads] Failed to add comment:', err);
         editor.submitting = false;
       }
     });
 
     editor.addEventListener('inline-cancel', () => this.removeInlineEditor());
 
-    // Insert editor before the footer (reply button)
-    const footer = threadEl.querySelector('.threads-thread__footer');
-    if (footer) {
-      threadEl.insertBefore(editor, footer);
+    if (parentCommentId) {
+      // Insert editor after the specific comment (or its replies container)
+      const parentComment = threadEl.querySelector(`.threads-comment[data-comment-id="${parentCommentId}"]`);
+      if (parentComment) {
+        const repliesContainer = parentComment.querySelector('.threads-replies');
+        if (repliesContainer) {
+          repliesContainer.appendChild(editor);
+        } else {
+          parentComment.appendChild(editor);
+        }
+      } else {
+        threadEl.appendChild(editor);
+      }
     } else {
-      threadEl.appendChild(editor);
+      // Top-level: insert before the footer
+      const footer = threadEl.querySelector('.threads-thread__footer');
+      if (footer) {
+        threadEl.insertBefore(editor, footer);
+      } else {
+        threadEl.appendChild(editor);
+      }
     }
     this.inlineEditorEl = editor;
   }

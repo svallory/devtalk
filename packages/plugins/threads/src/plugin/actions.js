@@ -125,6 +125,7 @@ const actions = {
         {
           id: commentId,
           thread_id: threadId,
+          parent_id: null,
           author,
           date,
           edited_at: null,
@@ -172,7 +173,7 @@ const actions = {
    */
   'threads:add-comment': async (payload, ctx) => {
     requireFields('threads:add-comment', payload, ['file', 'threadId', 'author', 'body']);
-    const { file, threadId, author, body } = payload;
+    const { file, threadId, author, body, parentId } = payload;
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);
 
@@ -182,6 +183,7 @@ const actions = {
     const comment = {
       id: commentId,
       thread_id: threadId,
+      parent_id: parentId || null,
       author,
       date,
       edited_at: null,
