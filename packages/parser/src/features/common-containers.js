@@ -124,6 +124,7 @@ function parseQuotedTitle(info) {
 
 module.exports = {
   name: 'common-containers',
+  createDepthTrackingContainer,
   setup(md) {
 
     // 1. Callout
