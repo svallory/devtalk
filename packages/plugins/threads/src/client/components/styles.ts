@@ -344,77 +344,83 @@ export function injectComponentStyles(): void {
       background: var(--tc-card);
     }
 
-    /* ========= Discussion thread (in-page) ========= */
-    .threads-discussion {
-      border-left: 2px solid var(--tc-border);
-      margin: 20px 0;
-      padding: 0 0 0 16px;
-    }
-    .threads-discussion > summary {
-      font-size: 13px;
-      color: var(--tc-muted-fg);
-      cursor: pointer;
-      padding: 4px 0;
-      list-style: none;
-      user-select: none;
-      font-weight: 500;
-    }
-    .threads-discussion > summary::-webkit-details-marker {
-      display: none;
-    }
-    .threads-discussion > summary::before {
-      content: '';
-      display: inline-block;
-      width: 0;
-      height: 0;
-      border-left: 4px solid currentColor;
-      border-top: 3px solid transparent;
-      border-bottom: 3px solid transparent;
-      margin-right: 6px;
-      transition: transform 0.15s;
-      vertical-align: middle;
-    }
-    .threads-discussion[open] > summary::before {
-      transform: rotate(90deg);
-    }
-    .threads-discussion__thread {
-      padding: 0;
+    /* ========= Server-rendered threads wrapper ========= */
+    .threads-sidebar {
+      margin: 24px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    /* ========= In-page comment blocks ========= */
-    .threads-page-comment {
-      margin: 10px 0;
-      padding: 0 0 0 12px;
+    /* ========= Server-rendered thread card ========= */
+    .threads-thread {
+      border: 1px solid var(--tc-border);
+      border-left: 3px solid var(--tc-ring);
+      border-radius: var(--tc-radius);
+      background: var(--tc-card);
+      overflow: hidden;
+      font-family: var(--tc-font);
+      transition: box-shadow 0.15s;
+    }
+    .threads-thread:hover {
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+    }
+    .threads-thread--resolved {
+      opacity: 0.55;
+    }
+
+    /* ========= Server-rendered comment ========= */
+    .threads-comment {
+      padding: 10px 14px;
       font-size: 14px;
     }
-    .threads-page-comment__meta {
+    .threads-comment + .threads-comment {
+      border-top: 1px solid var(--tc-border);
+    }
+    .threads-comment__meta {
       font-size: 12px;
       color: var(--tc-muted-fg);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
-    .threads-page-comment__meta strong {
+    .threads-comment__meta strong {
       color: var(--tc-fg);
       font-weight: 500;
     }
-    .threads-page-comment__body {
+    .threads-comment__body {
       color: var(--tc-fg);
       line-height: 1.6;
     }
-    .threads-page-comment__body > :first-child {
+    .threads-comment__body > :first-child {
       margin-top: 0;
     }
-    .threads-page-comment__body > :last-child {
+    .threads-comment__body > :last-child {
       margin-bottom: 0;
     }
 
-    .threads-page-comment .threads-page-comment {
-      border-left: 1px solid var(--tc-border);
-      padding-left: 12px;
-      margin: 8px 0;
+    /* ========= Server-rendered reactions ========= */
+    .threads-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 0;
+      list-style: none;
+      font-size: 13px;
+    }
+    .threads-reactions li {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--tc-border);
+      background: var(--tc-bg);
+      font-size: 12px;
     }
 
-    /* ========= Heading discussion button ========= */
-    .threads-heading-discuss {
+    /* ========= Heading discussion button (hidden) ========= */
+    .threads-heading-discuss { display: none !important; }
+    .threads-heading-discuss-OFF {
       float: right;
       display: inline-flex;
       align-items: center;
@@ -437,6 +443,42 @@ export function injectComponentStyles(): void {
       color: var(--tc-accent-fg);
       background: var(--tc-accent);
     }
+
+    /* ========= New Thread button ========= */
+    .threads-new-thread-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      margin: 8px 0 16px;
+      font-family: var(--tc-font);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--tc-muted-fg);
+      background: var(--tc-card);
+      border: 1px dashed var(--tc-border);
+      border-radius: var(--tc-radius);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .threads-new-thread-btn:hover {
+      color: var(--tc-fg);
+      border-color: var(--tc-fg);
+      background: var(--tc-muted);
+    }
+
+    /* ========= Thread flash animation (on highlight click) ========= */
+    .threads-thread--flash {
+      animation: tc-flash 2s ease-out;
+    }
+    @keyframes tc-flash {
+      0%   { outline: 2px solid var(--tc-ring); outline-offset: 4px; }
+      100% { outline: 2px solid transparent; outline-offset: 8px; }
+    }
+
+    /* ========= Hide sidebar (disabled for now) ========= */
+    .tc-sidebar-column { display: none !important; }
+    .tc-has-sidebar { padding-right: 0 !important; }
   `;
   document.head.appendChild(style);
 }

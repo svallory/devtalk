@@ -25,7 +25,7 @@ function getAssets(options) {
       dest: 'assets/js/threads.js',
       type: 'js',
       location: 'body',
-      attributes: 'type="module"'
+      attributes: { type: 'module' }
     },
     {
       src: path.join(__dirname, 'dist/client/index.css'),

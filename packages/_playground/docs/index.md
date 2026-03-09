@@ -36,7 +36,7 @@ Verification content.
 - [GitHub Repository](https://github.com/docmd-io/docmd)
 - [Report an Issue](https://github.com/docmd-io/docmd/issues)
 
-## 🧪 Developer Checklist
+## ==🧪 Developer Checklist=={t-5e1ab9a0}
 - [ ] **Parser:** Does the Markdown output match the HTML in `packages/parser/src/html-renderer.js`?
 - [ ] **UI:** Does the theme CSS apply to this page correctly?
 - [ ] **SPA:** Does navigation between pages work without a hard refresh?
@@ -62,10 +62,14 @@ Here is another paragraph with a ==different highlight=={t-test002} to test mult
       :::
     :::
   :::
-
   ::: thread t-test002
     ::: comment c-ccdd0001 "charlie" "2026-03-09"
       Another thread on a different highlight.
+    :::
+  :::
+  ::: thread t-5e1ab9a0
+    ::: comment c-e673d2c7 "Saulo" "2026-03-09"
+      Oh, hello!
     :::
   :::
 :::
