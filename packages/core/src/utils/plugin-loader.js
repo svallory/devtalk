@@ -72,21 +72,22 @@ function loadPlugins(config) {
     if (options === false) continue; // Skip disabled
 
     try {
-      // Try resolving standard package
+      // Resolve from the user's project first (process.cwd()), then from core's location.
+      // This is critical for pnpm strict mode where plugins installed in the user's
+      // project are not visible from core's own node_modules.
       let pluginModule;
       try {
-        pluginModule = require(name);
+        const resolved = require.resolve(name, { paths: [process.cwd(), __dirname] });
+        pluginModule = require(resolved);
       } catch (e) {
-        // Fallback for local development or misnamed packages
-        console.warn(chalk.dim(`   > Debug: Could not require '${name}', checking alternatives...`));
-        pluginModule = require(require.resolve(name, { paths: [process.cwd(), __dirname] }));
+        // Fallback to standard require (works when plugin is a dependency of core)
+        pluginModule = require(name);
       }
 
       registerPlugin(name, pluginModule, options);
     } catch (e) {
       console.warn(chalk.yellow(`⚠️  Could not load plugin: ${name}`));
-      // Only log full error in verbose/debug mode to reduce noise
-      // console.error(e.message); 
+      console.warn(chalk.dim(`   > ${e.message.split('\n')[0]}`));
     }
   }
 
