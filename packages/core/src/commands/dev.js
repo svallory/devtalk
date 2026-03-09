@@ -405,21 +405,27 @@ async function startDevServer(configPathOption, opts = {}) {
     }
   }
 
-  process.on('SIGINT', () => {
+  function shutdown() {
     console.log(chalk.yellow('\n🛑 Shutting down...'));
     watcher.close();
+    if (wss) {
+      // Close all WebSocket connections so server.close() can complete
+      wss.clients.forEach((client) => client.terminate());
+      wss.close();
+    }
     if (server) {
       server.close(() => {
         process.exit(0);
       });
+      // Force exit if server.close() hangs (e.g. lingering connections)
+      setTimeout(() => process.exit(0), 2000);
     } else {
       process.exit(0);
     }
-  });
+  }
 
-  process.on('SIGTERM', () => {
-    process.exit(0);
-  });
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
 }
 
 module.exports = { startDevServer };

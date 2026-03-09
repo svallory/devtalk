@@ -34,7 +34,7 @@ function hasMarkdownFiles(dir, maxDepth = 2, currentDepth = 0) {
   return false;
 }
 
-async function buildZeroConfig(cwd) {
+async function buildZeroConfig(cwd, isDev) {
 
   if (isDev) {
     console.log(chalk.cyan('✨ Zero-Config mode activated. Analyzing directory...'));
