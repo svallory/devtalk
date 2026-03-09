@@ -1,17 +1,20 @@
 {
   "name": "@svallory/docmd-plugin-threads",
-  "version": "0.5.2",
+  "version": "0.5.2-alpha",
   "description": "Inline discussion threads for docmd documentation sites.",
   "main": "index.js",
   "scripts": {
     "build": "node build.js",
-    "test": "node tests/parser.test.js && node tests/containers.test.js && node tests/highlight-rule.test.js && node tests/actions.test.js && node tests/integration.test.js"
+    "test": "node tests/parser.test.js && node tests/containers.test.js && node tests/highlight-rule.test.js && node tests/actions.test.js && node tests/integration.test.js",
+    "test:e2e": "npx playwright test",
+    "test:e2e:headed": "npx playwright test --headed"
   },
   "dependencies": {
     "@awesome.me/webawesome": "^3.3.1",
     "lit": "^3.3.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "esbuild": "^0.27.3",
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^3.0.0"
