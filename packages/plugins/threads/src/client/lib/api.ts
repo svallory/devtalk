@@ -1,4 +1,4 @@
-import type { Thread, Comment, Reaction } from '../../types.ts';
+import type { Thread, Comment, Reaction, AuthorsMap } from '../../types.ts';
 
 declare global {
   var docmd: {
@@ -16,6 +16,19 @@ function getSourceFile(): string {
   return file;
 }
 
+export async function fetchAuthors(): Promise<AuthorsMap> {
+  try {
+    return await docmd.call('threads:get-authors', {});
+  } catch {
+    // Fallback to injected global (static builds)
+    return (window as any).__threads_authors || {};
+  }
+}
+
+export async function upsertAuthor(authorKey: string, name: string, avatarUrl: string): Promise<void> {
+  await docmd.call('threads:upsert-author', { authorKey, name, avatarUrl });
+}
+
 export async function fetchThreads(): Promise<Thread[]> {
   return docmd.call('threads:get-threads', { file: getSourceFile() });
 }
@@ -24,6 +37,8 @@ export async function createThread(payload: {
   anchor: any | null;
   author: string;
   body: string;
+  authorKey?: string;
+  avatarUrl?: string;
 }): Promise<Thread> {
   return docmd.call('threads:add-thread', {
     file: getSourceFile(),
@@ -33,7 +48,7 @@ export async function createThread(payload: {
 
 export async function addComment(
   threadId: string,
-  payload: { author: string; body: string; parentId?: string | null },
+  payload: { author: string; body: string; parentId?: string | null; authorKey?: string; avatarUrl?: string },
 ): Promise<Comment> {
   return docmd.call('threads:add-comment', {
     file: getSourceFile(),

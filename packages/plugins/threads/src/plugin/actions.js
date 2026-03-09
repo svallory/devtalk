@@ -6,7 +6,67 @@
  */
 
 const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
 const parser = require('./parser');
+
+/**
+ * Resolve the .threads directory inside the docs source folder.
+ * Falls back to projectRoot if config.src is not available.
+ * @param {object} ctx
+ * @returns {string}
+ */
+function getThreadsDir(ctx) {
+  const srcDir = ctx.config?.src || '';
+  return path.join(ctx.projectRoot, srcDir, '.threads');
+}
+
+/**
+ * Read the authors map from <docsRoot>/.threads/authors.json.
+ * Returns {} if file doesn't exist.
+ * @param {object} ctx
+ * @returns {Promise<object>}
+ */
+async function readAuthors(ctx) {
+  const filePath = path.join(getThreadsDir(ctx), 'authors.json');
+  try {
+    const content = await fs.promises.readFile(filePath, 'utf8');
+    return JSON.parse(content);
+  } catch (e) {
+    if (e.code === 'ENOENT') return {};
+    throw e;
+  }
+}
+
+/**
+ * Write the authors map to <docsRoot>/.threads/authors.json.
+ * Creates the directory if needed.
+ * @param {object} ctx
+ * @param {object} authors
+ */
+async function writeAuthors(ctx, authors) {
+  const dirPath = getThreadsDir(ctx);
+  const filePath = path.join(dirPath, 'authors.json');
+  await fs.promises.mkdir(dirPath, { recursive: true });
+  await fs.promises.writeFile(filePath, JSON.stringify(authors, null, 2) + '\n');
+}
+
+/**
+ * Upsert an author entry. Updates name/avatarUrl if provided.
+ * @param {object} ctx
+ * @param {string} authorKey
+ * @param {string} name
+ * @param {string} [avatarUrl]
+ */
+async function upsertAuthor(ctx, authorKey, name, avatarUrl) {
+  const authors = await readAuthors(ctx);
+  const existing = authors[authorKey] || {};
+  authors[authorKey] = {
+    name: name || existing.name || authorKey,
+    avatarUrl: avatarUrl || existing.avatarUrl || '',
+  };
+  await writeAuthors(ctx, authors);
+}
 
 /**
  * Generate a thread ID: "t-" + 8 random hex chars.
@@ -96,6 +156,22 @@ function requireFields(action, payload, fields) {
 
 const actions = {
   /**
+   * Get the authors map. Read-only, no reload.
+   */
+  'threads:get-authors': async (payload, ctx) => {
+    return readAuthors(ctx);
+  },
+
+  /**
+   * Upsert an author entry directly.
+   */
+  'threads:upsert-author': async (payload, ctx) => {
+    requireFields('threads:upsert-author', payload, ['authorKey', 'name']);
+    await upsertAuthor(ctx, payload.authorKey, payload.name, payload.avatarUrl);
+    return { ok: true };
+  },
+
+  /**
    * Get all threads from a file. Read-only, no reload.
    */
   'threads:get-threads': async (payload, ctx) => {
@@ -109,7 +185,12 @@ const actions = {
    */
   'threads:add-thread': async (payload, ctx) => {
     requireFields('threads:add-thread', payload, ['file', 'author', 'body']);
-    const { file, author, body, anchor } = payload;
+    const { file, author, body, anchor, authorKey, avatarUrl } = payload;
+
+    // Upsert author profile if key provided
+    if (authorKey) {
+      await upsertAuthor(ctx, authorKey, author, avatarUrl);
+    }
     const { content, threads } = await readAndParse(file, ctx);
 
     const threadId = generateThreadId();
@@ -173,7 +254,12 @@ const actions = {
    */
   'threads:add-comment': async (payload, ctx) => {
     requireFields('threads:add-comment', payload, ['file', 'threadId', 'author', 'body']);
-    const { file, threadId, author, body, parentId } = payload;
+    const { file, threadId, author, body, parentId, authorKey, avatarUrl } = payload;
+
+    // Upsert author profile if key provided
+    if (authorKey) {
+      await upsertAuthor(ctx, authorKey, author, avatarUrl);
+    }
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);
 

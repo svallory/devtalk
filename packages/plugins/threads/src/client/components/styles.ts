@@ -402,6 +402,12 @@ export function injectComponentStyles(): void {
     .threads-comment + .threads-comment {
       border-top: 1px solid var(--tc-border);
     }
+
+    /* Avatar (injected dynamically) */
+    .threads-comment__avatar {
+      display: none;
+    }
+
     .threads-comment__meta {
       display: flex;
       align-items: center;
@@ -413,6 +419,7 @@ export function injectComponentStyles(): void {
       color: var(--tc-fg);
       font-weight: 500;
     }
+
     .threads-comment__actions {
       display: flex;
       align-items: center;
@@ -420,6 +427,7 @@ export function injectComponentStyles(): void {
       margin-left: auto;
       flex-shrink: 0;
     }
+
     .threads-comment__body {
       color: var(--tc-fg);
       line-height: 1.6;
@@ -659,12 +667,11 @@ export function injectComponentStyles(): void {
       100% { outline: 2px solid transparent; outline-offset: 8px; }
     }
 
-    /* ========= Identity button (top-right) ========= */
+    /* ========= Identity button & dropdown ========= */
     threads-identity {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 1000;
+      position: relative;
+      display: flex;
+      align-items: center;
       font-family: var(--tc-font);
     }
     .threads-identity-btn {
@@ -698,12 +705,26 @@ export function injectComponentStyles(): void {
       line-height: 1;
     }
 
-    /* ========= Identity dialog form ========= */
-    .threads-identity-form {
+    /* ========= Dropdown panel ========= */
+    .threads-identity-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 260px;
+      background: var(--tc-card);
+      border: 1px solid var(--tc-border);
+      border-radius: var(--tc-radius);
+      box-shadow: 0 4px 16px rgb(0 0 0 / 0.12), 0 1px 3px rgb(0 0 0 / 0.08);
+      padding: 14px;
+      z-index: 1000;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      font-family: var(--tc-font);
+      gap: 10px;
+      animation: tc-panel-drop 0.15s ease;
+    }
+    @keyframes tc-panel-drop {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .threads-identity-preview {
       display: flex;
@@ -761,6 +782,39 @@ export function injectComponentStyles(): void {
     .threads-identity-hint a {
       color: var(--tc-muted-fg);
       text-decoration: underline;
+    }
+    .threads-identity-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .threads-identity-cancel,
+    .threads-identity-save {
+      padding: 4px 12px;
+      border-radius: var(--tc-radius);
+      font-family: var(--tc-font);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .threads-identity-cancel {
+      background: transparent;
+      border: 1px solid var(--tc-border);
+      color: var(--tc-muted-fg);
+    }
+    .threads-identity-cancel:hover {
+      border-color: var(--tc-fg);
+      color: var(--tc-fg);
+    }
+    .threads-identity-save {
+      background: var(--tc-fg);
+      border: 1px solid var(--tc-fg);
+      color: var(--tc-bg);
+    }
+    .threads-identity-save:hover {
+      opacity: 0.85;
     }
 
     /* ========= Hide sidebar (disabled for now) ========= */

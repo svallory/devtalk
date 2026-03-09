@@ -1,10 +1,14 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { getAuthor, setAuthor, getEmail, setEmail, getAvatarUrl, setAvatarUrl } from '../lib/identity.ts';
-
-import '@awesome.me/webawesome/dist/components/dialog/dialog.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
+import {
+  getAuthor, setAuthor,
+  getEmail, setEmail,
+  getGithub, setGithub,
+  getAvatarUrl, setAvatarUrl,
+  computeAvatarUrl,
+  computeAuthorKey, setAuthorKey,
+} from '../lib/identity.ts';
+import { upsertAuthor } from '../lib/api.ts';
 
 @customElement('threads-identity')
 export class ThreadsIdentity extends LitElement {
@@ -12,70 +16,87 @@ export class ThreadsIdentity extends LitElement {
 
   @state() private name = '';
   @state() private email = '';
+  @state() private github = '';
   @state() private avatarUrl = '';
+  @state() private panelOpen = false;
+
+  private outsideClickHandler = (e: MouseEvent) => {
+    if (!this.contains(e.target as Node)) {
+      this.panelOpen = false;
+    }
+  };
 
   override connectedCallback(): void {
     super.connectedCallback();
     this.name = getAuthor() || '';
     this.email = getEmail() || '';
+    this.github = getGithub() || '';
     this.avatarUrl = getAvatarUrl() || '';
+
+    // If we have identity info but no avatar yet, compute one
+    if (!this.avatarUrl && (this.email || this.github)) {
+      this.refreshAvatar();
+    }
+
+    document.addEventListener('mousedown', this.outsideClickHandler);
   }
 
-  private openSettings(): void {
-    const dialog = this.querySelector<HTMLElement & { open: boolean }>('#identity-dialog');
-    if (dialog) dialog.open = true;
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    document.removeEventListener('mousedown', this.outsideClickHandler);
   }
 
-  private handleSave(): void {
+  private togglePanel(): void {
+    this.panelOpen = !this.panelOpen;
+  }
+
+  private async handleSave(): Promise<void> {
     const nameInput = this.querySelector<HTMLInputElement>('#identity-name');
     const emailInput = this.querySelector<HTMLInputElement>('#identity-email');
+    const githubInput = this.querySelector<HTMLInputElement>('#identity-github');
 
     if (nameInput) {
       const val = nameInput.value.trim();
-      if (val) {
-        this.name = val;
-        setAuthor(val);
-      }
+      this.name = val;
+      if (val) setAuthor(val);
     }
 
     if (emailInput) {
       const val = emailInput.value.trim();
       this.email = val;
       setEmail(val);
-      // Recompute gravatar from new email
-      if (val) {
-        this.computeGravatar(val);
-      } else {
-        this.avatarUrl = '';
-        setAvatarUrl('');
-      }
     }
 
-    const dialog = this.querySelector<HTMLElement & { open: boolean }>('#identity-dialog');
-    if (dialog) dialog.open = false;
+    if (githubInput) {
+      const val = githubInput.value.trim().replace(/^@/, '');
+      this.github = val;
+      setGithub(val);
+    }
+
+    await this.refreshAvatar();
+
+    // Compute and save author key
+    const authorKey = computeAuthorKey(this.name, this.github);
+    setAuthorKey(authorKey);
+
+    // Sync to server authors.json
+    try {
+      await upsertAuthor(authorKey, this.name, this.avatarUrl);
+    } catch {
+      // Server may not be available (e.g. static site); ignore
+    }
+
+    this.panelOpen = false;
+  }
+
+  private async refreshAvatar(): Promise<void> {
+    const url = await computeAvatarUrl(this.email, this.github);
+    this.avatarUrl = url;
+    setAvatarUrl(url);
   }
 
   private handleCancel(): void {
-    const dialog = this.querySelector<HTMLElement & { open: boolean }>('#identity-dialog');
-    if (dialog) dialog.open = false;
-  }
-
-  private async computeGravatar(email: string): Promise<void> {
-    try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(email.toLowerCase().trim());
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      // Gravatar supports SHA-256 hashes as well as MD5
-      const url = `https://gravatar.com/avatar/${hashHex}?s=80&d=mp`;
-      this.avatarUrl = url;
-      setAvatarUrl(url);
-    } catch {
-      // Fallback: just clear it
-      this.avatarUrl = '';
-      setAvatarUrl('');
-    }
+    this.panelOpen = false;
   }
 
   override render() {
@@ -84,8 +105,8 @@ export class ThreadsIdentity extends LitElement {
     return html`
       <button
         class="threads-identity-btn"
-        title="Discussion identity settings"
-        @click=${this.openSettings}
+        title="Discussion identity"
+        @click=${this.togglePanel}
       >
         ${this.avatarUrl
           ? html`<img class="threads-identity-avatar" src=${this.avatarUrl} alt=${this.name} />`
@@ -93,8 +114,8 @@ export class ThreadsIdentity extends LitElement {
         }
       </button>
 
-      <wa-dialog id="identity-dialog" label="Discussion Identity" light-dismiss>
-        <div class="threads-identity-form">
+      ${this.panelOpen ? html`
+        <div class="threads-identity-panel">
           <div class="threads-identity-preview">
             ${this.avatarUrl
               ? html`<img class="threads-identity-preview-img" src=${this.avatarUrl} alt=${this.name} />`
@@ -112,7 +133,17 @@ export class ThreadsIdentity extends LitElement {
             />
           </label>
           <label class="threads-identity-label">
-            Email (for Gravatar avatar)
+            GitHub Username
+            <input
+              id="identity-github"
+              class="threads-identity-input"
+              type="text"
+              .value=${this.github}
+              placeholder="octocat"
+            />
+          </label>
+          <label class="threads-identity-label">
+            Gravatar Email
             <input
               id="identity-email"
               class="threads-identity-input"
@@ -122,13 +153,15 @@ export class ThreadsIdentity extends LitElement {
             />
           </label>
           <p class="threads-identity-hint">
-            Avatar loaded from <a href="https://gravatar.com" target="_blank" rel="noopener">Gravatar</a>.
+            Avatar: <a href="https://gravatar.com" target="_blank" rel="noopener">Gravatar</a> &gt; GitHub &gt; random.
             Stored in your browser only.
           </p>
+          <div class="threads-identity-actions">
+            <button class="threads-identity-cancel" @click=${this.handleCancel}>Cancel</button>
+            <button class="threads-identity-save" @click=${this.handleSave}>Save</button>
+          </div>
         </div>
-        <wa-button slot="footer" appearance="outlined" @click=${this.handleCancel}>Cancel</wa-button>
-        <wa-button slot="footer" variant="brand" @click=${this.handleSave}>Save</wa-button>
-      </wa-dialog>
+      ` : ''}
     `;
   }
 }

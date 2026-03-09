@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import type { Thread, Anchor } from '../../types.ts';
+import type { Thread, Anchor, AuthorsMap } from '../../types.ts';
 import * as api from '../lib/api.ts';
-import { ensureAuthor, initIdentity } from '../lib/identity.ts';
+import { initIdentity, getIdentityPayload } from '../lib/identity.ts';
 import { computeAnchor, getSelectionPosition, isWithinContent } from '../lib/selection.ts';
 import { initThemeBridge } from '../lib/theme.ts';
 
@@ -19,6 +19,7 @@ export class ThreadsApp extends LitElement {
   override createRenderRoot() { return this; }
 
   @state() private threads: Thread[] = [];
+  @state() private authorsMap: AuthorsMap = {};
   @state() private popoverActive = false;
   @state() private popoverX = 0;
   @state() private popoverY = 0;
@@ -39,6 +40,7 @@ export class ThreadsApp extends LitElement {
     super.connectedCallback();
     initThemeBridge();
     initIdentity();
+    this.injectIdentityButton();
     document.addEventListener('mouseup', this.handleMouseUp);
     document.addEventListener('mousedown', this.handleOutsidePopoverClick);
     document.addEventListener('docmd:page-mounted', this.handlePageMounted as EventListener);
@@ -64,6 +66,22 @@ export class ThreadsApp extends LitElement {
       || document.querySelector('.main-content')
       || document.querySelector('article')
       || document.querySelector('main');
+  }
+
+  /**
+   * Create the identity button and place it in the page header.
+   * Done imperatively so Lit re-renders don't pull it back into threads-app.
+   */
+  private injectIdentityButton(): void {
+    // Avoid duplicates
+    if (document.querySelector('threads-identity')) return;
+
+    const target = document.querySelector('.docmd-options-menu')
+      || document.querySelector('.header-right');
+    if (!target) return;
+
+    const identity = document.createElement('threads-identity');
+    target.appendChild(identity);
   }
 
   /**
@@ -114,11 +132,11 @@ export class ThreadsApp extends LitElement {
     editor.quote = '';
 
     editor.addEventListener('inline-submit', async (e: CustomEvent) => {
-      const author = ensureAuthor();
+      const identity = getIdentityPayload();
       try {
         await api.createThread({
           anchor: null,
-          author,
+          ...identity,
           body: e.detail.body,
         });
         this.removeInlineEditor();
@@ -204,11 +222,11 @@ export class ThreadsApp extends LitElement {
     editor.quote = anchor.quote || '';
 
     editor.addEventListener('inline-submit', async (e: CustomEvent) => {
-      const author = ensureAuthor();
+      const identity = getIdentityPayload();
       try {
         await api.createThread({
           anchor,
-          author,
+          ...identity,
           body: e.detail.body,
         });
         this.removeInlineEditor();
@@ -239,7 +257,12 @@ export class ThreadsApp extends LitElement {
 
   private async loadThreads(): Promise<void> {
     try {
-      this.threads = await api.fetchThreads();
+      const [threads, authors] = await Promise.all([
+        api.fetchThreads(),
+        api.fetchAuthors(),
+      ]);
+      this.threads = threads;
+      this.authorsMap = authors;
     } catch (err) {
       console.error('[threads] Failed to load threads:', err);
       this.threads = [];
@@ -345,7 +368,23 @@ export class ThreadsApp extends LitElement {
         if (!commentId) continue;
 
         const meta = commentEl.querySelector('.threads-comment__meta');
-        if (!meta || meta.querySelector('.threads-comment__actions')) continue;
+        if (!meta) continue;
+
+        // Inject avatar if not already present
+        if (!meta.querySelector('.threads-comment__avatar')) {
+          const authorVal = commentEl.dataset.author || '';
+          const authorInfo = this.resolveAuthor(authorVal);
+          if (authorInfo?.avatarUrl) {
+            const avatar = document.createElement('img');
+            avatar.className = 'threads-comment__avatar';
+            avatar.src = authorInfo.avatarUrl;
+            avatar.alt = authorInfo.name || authorVal;
+            meta.insertBefore(avatar, meta.firstChild);
+          }
+        }
+
+        // Skip if actions already added (re-render)
+        if (commentEl.querySelector('.threads-comment__actions')) continue;
 
         // Actions container — pushed to the right via margin-left: auto
         const actions = document.createElement('div');
@@ -508,10 +547,10 @@ export class ThreadsApp extends LitElement {
     editor.quote = '';
 
     editor.addEventListener('inline-submit', async (e: CustomEvent) => {
-      const author = ensureAuthor();
+      const identity = getIdentityPayload();
       try {
         await api.addComment(threadId, {
-          author,
+          ...identity,
           body: e.detail.body,
           parentId: parentCommentId,
         });
@@ -552,6 +591,29 @@ export class ThreadsApp extends LitElement {
       }
     }
     this.inlineEditorEl = editor;
+  }
+
+  // ─── Author resolution ──────────────────────────────────────────
+
+  /**
+   * Look up author info by key or display name.
+   * Tries direct key match first, then scans by display name for legacy comments.
+   */
+  private resolveAuthor(authorVal: string): { name: string; avatarUrl: string } | null {
+    // Direct key match
+    if (this.authorsMap[authorVal]) return this.authorsMap[authorVal];
+
+    // Fallback: match by display name (legacy comments store full name)
+    for (const info of Object.values(this.authorsMap)) {
+      if (info.name === authorVal) return info;
+    }
+
+    // Fallback: match by first name (comments may only show first name)
+    for (const info of Object.values(this.authorsMap)) {
+      if (info.name.split(/\s+/)[0] === authorVal) return info;
+    }
+
+    return null;
   }
 
   // ─── Inline editor helpers ────────────────────────────────────────
@@ -597,8 +659,6 @@ export class ThreadsApp extends LitElement {
 
   override render() {
     return html`
-      <threads-identity></threads-identity>
-
       <threads-popover
         ?active=${this.popoverActive}
         .x=${this.popoverX}

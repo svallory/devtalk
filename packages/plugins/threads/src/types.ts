@@ -1,3 +1,12 @@
+export interface Author {
+  name: string;
+  avatarUrl: string;
+}
+
+export interface AuthorsMap {
+  [key: string]: Author;
+}
+
 export interface Thread {
   id: string;
   resolved: boolean;
