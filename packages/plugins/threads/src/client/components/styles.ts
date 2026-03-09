@@ -396,6 +396,9 @@ export function injectComponentStyles(): void {
 
     /* ========= Server-rendered comment ========= */
     .threads-comment {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 10px;
       padding: 10px 14px;
       font-size: 14px;
     }
@@ -403,12 +406,34 @@ export function injectComponentStyles(): void {
       border-top: 1px solid var(--tc-border);
     }
 
+    /* Avatar column — vertically centered with the name row */
+    .threads-comment__avatar-col {
+      flex-shrink: 0;
+      width: 28px;
+      display: flex;
+      align-items: center;
+      align-self: flex-start;
+      height: 28px;
+    }
+    .threads-comment__avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* Content column — name + body stacked vertically */
+    .threads-comment__content {
+      flex: 1;
+      min-width: 0;
+    }
+
     .threads-comment__meta {
       display: flex;
       align-items: center;
       font-size: 12px;
       color: var(--tc-muted-fg);
-      margin-bottom: 4px;
+      height: 28px;
     }
     .threads-comment__meta strong {
       color: var(--tc-fg);
@@ -423,28 +448,7 @@ export function injectComponentStyles(): void {
       flex-shrink: 0;
     }
 
-    /* Avatar + body row — avatar vertically centered with body text */
-    .threads-comment__row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .threads-comment__avatar-col {
-      flex-shrink: 0;
-      width: 28px;
-      display: flex;
-      align-items: center;
-    }
-    .threads-comment__avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
     .threads-comment__body {
-      flex: 1;
-      min-width: 0;
       color: var(--tc-fg);
       line-height: 1.6;
     }
@@ -511,8 +515,8 @@ export function injectComponentStyles(): void {
     /* ========= Nested replies ========= */
     .threads-replies {
       flex-basis: 100%;
-      margin-left: 16px;
-      padding-left: 16px;
+      margin-left: 38px;
+      padding-left: 12px;
       border-left: 2px solid var(--tc-border);
     }
     .threads-comment--reply {
@@ -520,6 +524,10 @@ export function injectComponentStyles(): void {
     }
     .threads-comment--reply .threads-comment__avatar-col {
       width: 24px;
+      height: 24px;
+    }
+    .threads-comment--reply .threads-comment__meta {
+      height: 24px;
     }
     .threads-comment--reply .threads-comment__avatar {
       width: 24px;
