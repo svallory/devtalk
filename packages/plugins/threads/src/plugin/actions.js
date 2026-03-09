@@ -80,11 +80,26 @@ function findComment(thread, commentId) {
   return comment;
 }
 
+/**
+ * Validate that required string fields are present and non-empty.
+ * @param {string} action - action name for error messages
+ * @param {object} payload
+ * @param {string[]} fields
+ */
+function requireFields(action, payload, fields) {
+  for (const field of fields) {
+    if (!payload[field] || (typeof payload[field] === 'string' && !payload[field].trim())) {
+      throw new Error(`${action}: ${field} is required`);
+    }
+  }
+}
+
 const actions = {
   /**
    * Get all threads from a file. Read-only, no reload.
    */
   'threads:get-threads': async (payload, ctx) => {
+    requireFields('threads:get-threads', payload, ['file']);
     const content = await ctx.readFile(payload.file);
     return parser.parseThreadsFromContent(content);
   },
@@ -93,6 +108,7 @@ const actions = {
    * Add a new thread with its first comment.
    */
   'threads:add-thread': async (payload, ctx) => {
+    requireFields('threads:add-thread', payload, ['file', 'author', 'body']);
     const { file, author, body, anchor } = payload;
     const { content, threads } = await readAndParse(file, ctx);
 
@@ -105,7 +121,6 @@ const actions = {
       resolved: false,
       resolved_by: null,
       resolved_at: null,
-      anchor: anchor || null,
       comments: [
         {
           id: commentId,
@@ -156,6 +171,7 @@ const actions = {
    * Add a comment to an existing thread.
    */
   'threads:add-comment': async (payload, ctx) => {
+    requireFields('threads:add-comment', payload, ['file', 'threadId', 'author', 'body']);
     const { file, threadId, author, body } = payload;
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);
@@ -182,6 +198,7 @@ const actions = {
    * Edit an existing comment's body.
    */
   'threads:edit-comment': async (payload, ctx) => {
+    requireFields('threads:edit-comment', payload, ['file', 'threadId', 'commentId', 'body']);
     const { file, threadId, commentId, body } = payload;
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);
@@ -198,6 +215,7 @@ const actions = {
    * Delete a comment from a thread.
    */
   'threads:delete-comment': async (payload, ctx) => {
+    requireFields('threads:delete-comment', payload, ['file', 'threadId', 'commentId']);
     const { file, threadId, commentId } = payload;
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);
@@ -214,12 +232,18 @@ const actions = {
    * Delete an entire thread.
    */
   'threads:delete-thread': async (payload, ctx) => {
+    requireFields('threads:delete-thread', payload, ['file', 'threadId']);
     const { file, threadId } = payload;
-    const { content, threads } = await readAndParse(file, ctx);
+    let { content, threads } = await readAndParse(file, ctx);
 
     const idx = threads.findIndex((t) => t.id === threadId);
     if (idx === -1) throw new Error(`Thread not found: ${threadId}`);
     threads.splice(idx, 1);
+
+    // Remove orphaned ==highlight=={threadId} markup from the body,
+    // keeping just the inner text
+    const highlightRe = new RegExp(`==((?:(?!==).)+)==\\{${threadId}\\}`, 'g');
+    content = content.replace(highlightRe, '$1');
 
     await writeBack(file, content, threads, ctx);
     return { deleted: true };
@@ -229,6 +253,7 @@ const actions = {
    * Toggle resolved status on a thread.
    */
   'threads:resolve-thread': async (payload, ctx) => {
+    requireFields('threads:resolve-thread', payload, ['file', 'threadId', 'resolved_by']);
     const { file, threadId, resolved_by } = payload;
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);
@@ -251,6 +276,7 @@ const actions = {
    * Toggle a reaction emoji on a comment.
    */
   'threads:toggle-reaction': async (payload, ctx) => {
+    requireFields('threads:toggle-reaction', payload, ['file', 'threadId', 'commentId', 'emoji', 'author']);
     const { file, threadId, commentId, emoji, author } = payload;
     const { content, threads } = await readAndParse(file, ctx);
     const thread = findThread(threads, threadId);

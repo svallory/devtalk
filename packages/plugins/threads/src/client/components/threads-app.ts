@@ -4,7 +4,7 @@ import type { Thread, Anchor } from '../../types.ts';
 import * as api from '../lib/api.ts';
 import { ensureAuthor, initIdentity, getAuthor } from '../lib/identity.ts';
 import { computeAnchor, getSelectionPosition, isWithinContent } from '../lib/selection.ts';
-import { reanchor, clearHighlights, applyHighlight, scrollToHighlight } from '../lib/highlights.ts';
+import { scrollToHighlight } from '../lib/highlights.ts';
 import { initThemeBridge } from '../lib/theme.ts';
 
 import './threads-panel.ts';
@@ -172,7 +172,6 @@ export class ThreadsApp extends LitElement {
   };
 
   private handlePageMounted = (_e: CustomEvent): void => {
-    clearHighlights();
     this.popoverActive = false;
     this.loadThreads();
     this.injectHeadingButtons();
@@ -185,31 +184,28 @@ export class ThreadsApp extends LitElement {
       console.error('[threads] Failed to load threads:', err);
       this.threads = [];
     }
-    this.applyAllHighlights();
+    this.scanRenderedHighlights();
   }
 
-  private applyAllHighlights(): void {
-    clearHighlights();
-    this.orphanIds.clear();
+  /**
+   * Scan the DOM for <mark class="threads-highlight" data-thread-id="..."> elements
+   * rendered by the highlight markdown-it rule. Build threadQuotes map and attach
+   * click handlers to focus the corresponding thread in the sidebar.
+   */
+  private scanRenderedHighlights(): void {
     this.threadQuotes.clear();
-    for (const thread of this.threads) {
-      // The new Thread type doesn't have an anchor field directly.
-      // Anchors are stored via ==text=={thread-id} highlight syntax in the markdown.
-      // The highlights.ts reanchor function expects thread.anchor — we skip threads
-      // that don't have anchors (which is the normal case now).
-      const threadWithAnchor = thread as Thread & { anchor?: Anchor };
-      if (!threadWithAnchor.anchor) continue;
-      const result = reanchor(threadWithAnchor as any);
-      if (result.range) {
-        this.threadQuotes.set(thread.id, threadWithAnchor.anchor.quote);
-        applyHighlight(thread.id, result.range, thread.resolved, (id) => {
-          this.focusedThreadId = id;
-          this.panelOpen = true;
-        });
-      }
-      if (result.orphan) {
-        this.orphanIds.add(thread.id);
-      }
+    const marks = document.querySelectorAll<HTMLElement>('mark.threads-highlight[data-thread-id]');
+    for (const mark of marks) {
+      const threadId = mark.dataset.threadId;
+      if (!threadId) continue;
+      this.threadQuotes.set(threadId, mark.textContent || '');
+
+      // Attach click handler to open sidebar and focus thread
+      mark.style.cursor = 'pointer';
+      mark.addEventListener('click', () => {
+        this.focusedThreadId = threadId;
+        this.panelOpen = true;
+      });
     }
   }
 

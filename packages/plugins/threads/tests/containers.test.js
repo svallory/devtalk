@@ -7,13 +7,7 @@
  * @license MIT
  */
 
-const path = require('path');
-
-// Resolve markdown-it from where it's installed in the parser package
-const markdownItPath = require.resolve('markdown-it', {
-  paths: [path.join(process.cwd(), 'packages', 'parser')],
-});
-const MarkdownIt = require(markdownItPath);
+const MarkdownIt = require('markdown-it');
 
 // Also need the common-containers for createDepthTrackingContainer
 const { setup: setupContainers } = require('../src/plugin/containers.js');
@@ -252,6 +246,44 @@ const emptyInput = `::: threads
 
 const html11 = md11.render(emptyInput);
 assertContains(html11, 'class="threads-sidebar"', 'empty threads wrapper still renders');
+
+// ─── Test 12: Comment with ID (new serialized format) ───
+
+console.log('\nTest 12: Comment with ID in info string');
+
+const md12 = createMd();
+const commentWithIdInput = `::: threads
+  ::: thread t-id01
+    ::: comment c-abc12345 "alice" "2026-03-07"
+      Comment with persistent ID
+    :::
+  :::
+:::
+`;
+
+const html12 = md12.render(commentWithIdInput);
+assertContains(html12, 'data-comment-id="c-abc12345"', 'comment has data-comment-id from new format');
+assertContains(html12, 'data-author="alice"', 'comment has correct author from new format');
+assertContains(html12, 'data-date="2026-03-07"', 'comment has correct date from new format');
+
+// ─── Test 13: Comment with ID and edited (new serialized format) ───
+
+console.log('\nTest 13: Comment with ID and edited');
+
+const md13 = createMd();
+const commentWithIdEditedInput = `::: threads
+  ::: thread t-id02
+    ::: comment c-def67890 "bob" "2026-03-07" edited "2026-03-08"
+      Edited comment with ID
+    :::
+  :::
+:::
+`;
+
+const html13 = md13.render(commentWithIdEditedInput);
+assertContains(html13, 'data-comment-id="c-def67890"', 'edited comment has data-comment-id');
+assertContains(html13, 'data-author="bob"', 'edited comment has correct author');
+assertContains(html13, 'data-edited="2026-03-08"', 'edited comment has data-edited');
 
 // ─── Done ───
 

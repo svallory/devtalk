@@ -4,9 +4,7 @@
  * Run: node packages/plugins/threads/tests/highlight-rule.test.js
  */
 
-const md = require(
-  require.resolve('markdown-it', { paths: [process.cwd() + '/packages/parser'] })
-)();
+const md = require('markdown-it')();
 const highlightRule = require('../src/plugin/highlight-rule');
 highlightRule.setup(md);
 

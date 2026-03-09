@@ -348,6 +348,59 @@ async function run() {
   assert(highlightIdx2 >= 0, `Highlight markup should exist. Got:\n${anchorContent2}`);
   assert(highlightIdx2 < threadsBlockIdx2, 'Highlight should be in body, not in threads block');
 
+  // ─── Test 12: delete-thread removes highlight markup from body ───
+  console.log('\nTest 12: delete-thread removes highlight markup');
+
+  const deleteHighlightFile = 'delete-highlight.md';
+  const deleteThreadId = anchorThread.id;
+  // Copy the anchor file content which has ==important text=={threadId}
+  fs.writeFileSync(path.join(tempDir, deleteHighlightFile), anchorContent);
+
+  await handleCall('threads:delete-thread', {
+    file: deleteHighlightFile,
+    threadId: deleteThreadId,
+  }, tempDir);
+
+  const afterDelete = fs.readFileSync(path.join(tempDir, deleteHighlightFile), 'utf8');
+  assert(!afterDelete.includes('==' + 'important text=={'), 'Highlight markup should be removed');
+  assert(afterDelete.includes('important text'), 'Original text should remain');
+
+  // ─── Test 13: input validation ───
+  console.log('\nTest 13: input validation');
+
+  let validationError;
+
+  try {
+    await handleCall('threads:add-thread', { file: '', author: 'alice', body: 'hi' }, tempDir);
+  } catch (e) {
+    validationError = e.message;
+  }
+  assert(validationError && validationError.includes('file is required'), 'Should reject empty file');
+
+  validationError = null;
+  try {
+    await handleCall('threads:add-thread', { file: testFile, author: '', body: 'hi' }, tempDir);
+  } catch (e) {
+    validationError = e.message;
+  }
+  assert(validationError && validationError.includes('author is required'), 'Should reject empty author');
+
+  validationError = null;
+  try {
+    await handleCall('threads:add-thread', { file: testFile, author: 'alice', body: '   ' }, tempDir);
+  } catch (e) {
+    validationError = e.message;
+  }
+  assert(validationError && validationError.includes('body is required'), 'Should reject whitespace-only body');
+
+  validationError = null;
+  try {
+    await handleCall('threads:get-threads', {}, tempDir);
+  } catch (e) {
+    validationError = e.message;
+  }
+  assert(validationError && validationError.includes('file is required'), 'get-threads should reject missing file');
+
   // ─── Cleanup ───
   fs.rmSync(tempDir, { recursive: true });
 
