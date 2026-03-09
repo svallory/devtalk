@@ -10,7 +10,7 @@ description: "Generate beautiful, lightweight, and blazing-fast documentation si
 |___|___|___|_|_|_|___|
 ```
 
-**Generate beautiful, lightweight documentation sites directly from your Markdown files. Zero clutter, just content.**
+**Generate beautiful, ==lightweight documentation=={t-aaf20297} sites directly from your Markdown files. Zero clutter, just content.**
 
 `docmd` bridges the gap between simple static site generators and heavy, framework-driven applications. It processes standard Markdown into highly optimized static HTML, while delivering a buttery-smooth Single Page Application (SPA) experience for your users.
 
@@ -115,3 +115,15 @@ export default defineConfig({
 :::
 
 Ready to build? [Install docmd](/getting-started/installation) or see [Zero-Config Mode](/getting-started/zero-config) in action.
+
+::: threads
+  ::: thread t-aaf20297
+    ::: comment c-835a5573 "Saulo" "2026-03-09"
+      nice
+    :::
+
+    ::: comment c-1a412380 "Saulo" "2026-03-09" reply-to c-835a5573
+      yep
+    :::
+  :::
+:::
