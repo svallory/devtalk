@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@docmd/core": "workspace:*"
+    "@svallory/core": "workspace:*"
   },
   "scripts": {
     "dev": "docmd dev",
