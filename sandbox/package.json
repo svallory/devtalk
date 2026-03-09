@@ -1,0 +1,13 @@
+{
+  "name": "@devtalk/sandbox",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "docmd dev",
+    "build": "docmd build"
+  },
+  "dependencies": {
+    "@svallory/docmd-core": "workspace:*",
+    "@svallory/docmd-plugin-threads": "workspace:*"
+  }
+}

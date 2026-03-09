@@ -132,3 +132,4 @@ genctx.context.md
 _backup
 /dist
 _documentation
+.playwright-mcp
