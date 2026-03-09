@@ -16,6 +16,7 @@ const { createMarkdownProcessor, processContent } = require('./markdown-processo
 const { renderTemplate } = require('./html-renderer');
 const { renderIcon } = require('./utils/icon-renderer');
 const { validateConfig } = require('./utils/validator');
+const { createDepthTrackingContainer } = require('./features/common-containers');
 
 module.exports = {
   // Logic
@@ -23,7 +24,8 @@ module.exports = {
   processContent,
   renderTemplate,
   validateConfig,
-  
+
   // Utils
-  renderIcon
+  renderIcon,
+  createDepthTrackingContainer
 };

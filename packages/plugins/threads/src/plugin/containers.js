@@ -9,12 +9,10 @@
  * @license MIT
  */
 
-const path = require('path');
-
 // Import createDepthTrackingContainer from the parser package
 const {
   createDepthTrackingContainer,
-} = require(path.join(__dirname, '..', '..', '..', '..', 'parser', 'src', 'features', 'common-containers.js'));
+} = require('@svallory/docmd-parser');
 
 /**
  * Parse a thread info string.
