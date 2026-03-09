@@ -327,11 +327,82 @@ export class ThreadsApp extends LitElement {
       });
     }
 
+    // 4. Inject reply buttons into all thread cards
+    this.injectReplyButtons();
+
     // Hide the now-empty threads-sidebar wrapper
     const sidebar = document.querySelector('.threads-sidebar');
     if (sidebar instanceof HTMLElement) {
       sidebar.style.display = 'none';
     }
+  }
+
+  /**
+   * Add a "Reply" button to the bottom of each .threads-thread card.
+   */
+  private injectReplyButtons(): void {
+    const threads = document.querySelectorAll<HTMLElement>('.threads-thread[data-thread-id]');
+    for (const threadEl of threads) {
+      // Skip if already has a reply button
+      if (threadEl.querySelector('.threads-reply-btn')) continue;
+
+      const threadId = threadEl.dataset.threadId;
+      if (!threadId) continue;
+
+      const footer = document.createElement('div');
+      footer.className = 'threads-thread__footer';
+
+      const btn = document.createElement('button');
+      btn.className = 'threads-reply-btn';
+      btn.innerHTML = `<wa-icon name="reply" style="font-size:13px;"></wa-icon> Reply`;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openReplyEditor(threadEl, threadId);
+      });
+
+      footer.appendChild(btn);
+      threadEl.appendChild(footer);
+    }
+  }
+
+  /**
+   * Open an inline editor at the bottom of a thread card for replying.
+   */
+  private openReplyEditor(threadEl: HTMLElement, threadId: string): void {
+    this.removeInlineEditor();
+
+    const editor = document.createElement('threads-inline-editor') as any;
+    editor.quote = '';
+
+    editor.addEventListener('inline-submit', async (e: CustomEvent) => {
+      const author = ensureAuthor();
+      try {
+        await api.addComment(threadId, {
+          author,
+          body: e.detail.body,
+        });
+        this.removeInlineEditor();
+        if (typeof docmd !== 'undefined' && docmd.scheduleReload) {
+          docmd.scheduleReload('threads');
+        } else {
+          await this.loadThreads();
+        }
+      } catch (err) {
+        console.error('[threads] Failed to add reply:', err);
+        editor.submitting = false;
+      }
+    });
+
+    editor.addEventListener('inline-cancel', () => this.removeInlineEditor());
+
+    // Insert editor before the footer (reply button)
+    const footer = threadEl.querySelector('.threads-thread__footer');
+    if (footer) {
+      threadEl.insertBefore(editor, footer);
+    } else {
+      threadEl.appendChild(editor);
+    }
+    this.inlineEditorEl = editor;
   }
 
   // ─── Inline editor helpers ────────────────────────────────────────

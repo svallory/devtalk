@@ -422,6 +422,31 @@ export function injectComponentStyles(): void {
       margin-bottom: 0;
     }
 
+    /* ========= Thread footer & reply button ========= */
+    .threads-thread__footer {
+      padding: 6px 14px 8px;
+      border-top: 1px solid var(--tc-border);
+    }
+    .threads-reply-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border: none;
+      background: transparent;
+      color: var(--tc-muted-fg);
+      font-family: var(--tc-font);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: var(--tc-radius);
+      transition: color 0.15s, background 0.15s;
+    }
+    .threads-reply-btn:hover {
+      color: var(--tc-fg);
+      background: var(--tc-muted);
+    }
+
     /* ========= Server-rendered reactions ========= */
     .threads-reactions {
       margin-top: 8px;

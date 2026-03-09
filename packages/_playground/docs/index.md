@@ -37,7 +37,7 @@ Verification content.
 - [Report an Issue](https://github.com/docmd-io/docmd/issues)
 
 ## ==🧪 Developer Checklist=={t-5e1ab9a0}
-- [ ] **Parser:** Does the Markdown output match the HTML in `packages/parser/src/html-renderer.js`?
+- [ ] **Parser:** Does the ==Markdown output match=={t-785e4273} the HTML in `packages/parser/src/html-renderer.js`?
 - [ ] **UI:** Does the theme CSS apply to this page correctly?
 - [ ] **SPA:** Does navigation between pages work without a hard refresh?
 
@@ -55,11 +55,6 @@ Here is another paragraph with a ==different highlight=={t-test002} to test mult
 
     ::: comment c-aabb0002 "bob" "2026-03-09"
       I agree, this is looking great!
-
-      ::: reactions
-        - 👍 alice
-        - 🎉 charlie
-      :::
     :::
   :::
   ::: thread t-test002
@@ -70,6 +65,11 @@ Here is another paragraph with a ==different highlight=={t-test002} to test mult
   ::: thread t-5e1ab9a0
     ::: comment c-e673d2c7 "Saulo" "2026-03-09"
       Oh, hello!
+    :::
+  :::
+  ::: thread t-785e4273
+    ::: comment c-7f0d5d8c "Saulo" "2026-03-09"
+      Hello there!
     :::
   :::
 :::
