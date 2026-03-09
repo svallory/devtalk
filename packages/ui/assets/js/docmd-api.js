@@ -76,11 +76,20 @@
     };
   }
 
-  function sendMessage(msg) {
-    if (!socket || socket.readyState !== 1) {
-      throw new Error('docmd: WebSocket not connected');
-    }
-    socket.send(JSON.stringify(msg));
+  function waitForConnection() {
+    if (socket && socket.readyState === 1) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('docmd: WebSocket connection timeout')), 5000);
+      function check() {
+        if (socket && socket.readyState === 1) {
+          clearTimeout(timeout);
+          resolve();
+        } else {
+          setTimeout(check, 50);
+        }
+      }
+      check();
+    });
   }
 
   /**
@@ -88,7 +97,8 @@
    * If the action modifies files, the page reloads automatically after
    * the promise resolves and the current microtask completes.
    */
-  docmd.call = function(action, payload) {
+  docmd.call = async function(action, payload) {
+    await waitForConnection();
     return new Promise((resolve, reject) => {
       const id = String(++messageId);
       pendingCalls.set(id, {
@@ -100,15 +110,16 @@
         },
         reject
       });
-      sendMessage({ id, type: 'call', action, payload });
+      socket.send(JSON.stringify({ id, type: 'call', action, payload }));
     });
   };
 
   /**
    * Send a fire-and-forget event to the server.
    */
-  docmd.send = function(name, data) {
-    sendMessage({ type: 'event', name, data });
+  docmd.send = async function(name, data) {
+    await waitForConnection();
+    socket.send(JSON.stringify({ type: 'event', name, data }));
   };
 
   /**

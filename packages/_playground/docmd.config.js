@@ -6,5 +6,8 @@ module.exports = defineConfig({
   out: 'site',
   layout: {
     spa: true
+  },
+  plugins: {
+    threads: {}
   }
 });

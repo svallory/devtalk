@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@svallory/docmd-core": "workspace:*"
+    "@svallory/docmd-core": "workspace:*",
+    "@svallory/docmd-plugin-threads": "workspace:*"
   },
   "scripts": {
     "dev": "docmd dev",

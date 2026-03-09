@@ -40,3 +40,32 @@ Verification content.
 - [ ] **Parser:** Does the Markdown output match the HTML in `packages/parser/src/html-renderer.js`?
 - [ ] **UI:** Does the theme CSS apply to this page correctly?
 - [ ] **SPA:** Does navigation between pages work without a hard refresh?
+
+## Threads Plugin Test
+
+This section tests the ==inline discussion threads=={t-test001} plugin. You can highlight text and start discussions.
+
+Here is another paragraph with a ==different highlight=={t-test002} to test multiple threads.
+
+::: threads
+  ::: thread t-test001
+    ::: comment c-aabb0001 "alice" "2026-03-08"
+      This is a test comment on the highlighted text above. The threads plugin should render this in the sidebar.
+    :::
+
+    ::: comment c-aabb0002 "bob" "2026-03-09"
+      I agree, this is looking great!
+
+      ::: reactions
+        - 👍 alice
+        - 🎉 charlie
+      :::
+    :::
+  :::
+
+  ::: thread t-test002
+    ::: comment c-ccdd0001 "charlie" "2026-03-09"
+      Another thread on a different highlight.
+    :::
+  :::
+:::
