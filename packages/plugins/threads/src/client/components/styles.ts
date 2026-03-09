@@ -403,11 +403,6 @@ export function injectComponentStyles(): void {
       border-top: 1px solid var(--tc-border);
     }
 
-    /* Avatar (injected dynamically) */
-    .threads-comment__avatar {
-      display: none;
-    }
-
     .threads-comment__meta {
       display: flex;
       align-items: center;
@@ -428,7 +423,28 @@ export function injectComponentStyles(): void {
       flex-shrink: 0;
     }
 
+    /* Avatar + body row — avatar vertically centered with body text */
+    .threads-comment__row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .threads-comment__avatar-col {
+      flex-shrink: 0;
+      width: 28px;
+      display: flex;
+      align-items: center;
+    }
+    .threads-comment__avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
     .threads-comment__body {
+      flex: 1;
+      min-width: 0;
       color: var(--tc-fg);
       line-height: 1.6;
     }
@@ -494,12 +510,20 @@ export function injectComponentStyles(): void {
 
     /* ========= Nested replies ========= */
     .threads-replies {
-      margin-left: 8px;
+      flex-basis: 100%;
+      margin-left: 16px;
+      padding-left: 16px;
       border-left: 2px solid var(--tc-border);
     }
     .threads-comment--reply {
-      padding-left: 12px !important;
-      padding-right: 0 !important;
+      padding: 8px 0 !important;
+    }
+    .threads-comment--reply .threads-comment__avatar-col {
+      width: 24px;
+    }
+    .threads-comment--reply .threads-comment__avatar {
+      width: 24px;
+      height: 24px;
     }
 
     /* ========= Per-comment reply button ========= */

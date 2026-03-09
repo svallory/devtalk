@@ -142,10 +142,12 @@ function setup(md) {
       return (
         `<div class="threads-comment${replyClass}"${idAttr}${parentAttr} data-author="${parsed.author}" data-date="${parsed.date}"${editedAttr}>` +
         `<div class="threads-comment__meta"><strong>${parsed.author}</strong> &middot; ${parsed.date}</div>` +
+        `<div class="threads-comment__row">` +
+        `<div class="threads-comment__avatar-col"></div>` +
         `<div class="threads-comment__body">\n`
       );
     },
-    () => '</div></div>\n'
+    () => '</div></div></div>\n'
   );
 
   // 4. reactions — reactions container

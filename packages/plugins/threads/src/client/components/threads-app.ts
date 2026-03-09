@@ -370,8 +370,9 @@ export class ThreadsApp extends LitElement {
         const meta = commentEl.querySelector('.threads-comment__meta');
         if (!meta) continue;
 
-        // Inject avatar if not already present
-        if (!meta.querySelector('.threads-comment__avatar')) {
+        // Inject avatar into the avatar column if not already present
+        const avatarCol = commentEl.querySelector('.threads-comment__avatar-col');
+        if (avatarCol && !avatarCol.querySelector('.threads-comment__avatar')) {
           const authorVal = commentEl.dataset.author || '';
           const authorInfo = this.resolveAuthor(authorVal);
           if (authorInfo?.avatarUrl) {
@@ -379,7 +380,7 @@ export class ThreadsApp extends LitElement {
             avatar.className = 'threads-comment__avatar';
             avatar.src = authorInfo.avatarUrl;
             avatar.alt = authorInfo.name || authorVal;
-            meta.insertBefore(avatar, meta.firstChild);
+            avatarCol.appendChild(avatar);
           }
         }
 
