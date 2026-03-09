@@ -184,13 +184,8 @@ async function startDevServer(configPathOption, opts = {}) {
   // Create Server
   const server = http.createServer((req, res) => serveStatic(req, res, paths.outputDir));
   let wss;
-  let suppressNextReload = false;
 
   function broadcastReload() {
-    if (suppressNextReload) {
-      suppressNextReload = false;
-      return;
-    }
     if (wss) {
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) client.send('reload');
@@ -319,7 +314,7 @@ async function startDevServer(configPathOption, opts = {}) {
 
   function tryStartServer(port) {
     server.listen(port, '0.0.0.0')
-      .on('listening', async () => {
+      .once('listening', async () => {
         wss = new WebSocket.Server({ server });
         wss.on('error', (e) => console.error('WebSocket Error:', e.message));
 
@@ -347,8 +342,9 @@ async function startDevServer(configPathOption, opts = {}) {
             if (msg.type === 'call') {
               try {
                 const { result, reload } = await dispatcher.handleCall(msg.action, msg.payload);
-                if (reload) suppressNextReload = true;
-                ws.send(JSON.stringify({ id: msg.id, type: 'response', result, reload }));
+                // Don't send reload flag to client — let the file watcher detect
+                // the change, rebuild, and send the reload via broadcastReload()
+                ws.send(JSON.stringify({ id: msg.id, type: 'response', result, reload: false }));
               } catch (e) {
                 ws.send(JSON.stringify({ id: msg.id, type: 'response', error: e.message }));
               }
@@ -380,7 +376,7 @@ async function startDevServer(configPathOption, opts = {}) {
           console.warn(chalk.yellow(`⚠️  Warning: Root index.html not found.`));
         }
       })
-      .on('error', (err) => {
+      .once('error', (err) => {
         if (err.code === 'EADDRINUSE') {
           server.close();
           tryStartServer(port + 1);
