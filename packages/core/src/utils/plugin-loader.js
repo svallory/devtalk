@@ -33,7 +33,8 @@ const ALIASES = {
   'analytics': '@docmd/plugin-analytics',
   'mermaid': '@docmd/plugin-mermaid',
   'llms': '@docmd/plugin-llms',
-  'pwa': '@docmd/plugin-pwa'
+  'pwa': '@docmd/plugin-pwa',
+  'threads': '@svallory/plugin-threads'
 };
 
 function loadPlugins(config) {
