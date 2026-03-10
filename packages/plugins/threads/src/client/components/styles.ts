@@ -396,9 +396,10 @@ export function injectComponentStyles(): void {
 
     /* ========= Server-rendered comment ========= */
     .threads-comment {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0 10px;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      grid-template-rows: 28px auto auto;
+      column-gap: 10px;
       padding: 10px 14px;
       font-size: 14px;
     }
@@ -406,14 +407,13 @@ export function injectComponentStyles(): void {
       border-top: 1px solid var(--tc-border);
     }
 
-    /* Avatar column — vertically centered with the name row */
+    /* Avatar column — row 1; vertical line spans rows 2-3 */
     .threads-comment__avatar-col {
-      flex-shrink: 0;
-      width: 28px;
+      grid-column: 1;
+      grid-row: 1;
       display: flex;
       align-items: center;
-      align-self: flex-start;
-      height: 28px;
+      justify-content: center;
     }
     .threads-comment__avatar {
       width: 28px;
@@ -422,18 +422,13 @@ export function injectComponentStyles(): void {
       object-fit: cover;
     }
 
-    /* Content column — name + body stacked vertically */
-    .threads-comment__content {
-      flex: 1;
-      min-width: 0;
-    }
-
     .threads-comment__meta {
+      grid-column: 2;
+      grid-row: 1;
       display: flex;
       align-items: center;
       font-size: 12px;
       color: var(--tc-muted-fg);
-      height: 28px;
     }
     .threads-comment__meta strong {
       color: var(--tc-fg);
@@ -449,6 +444,8 @@ export function injectComponentStyles(): void {
     }
 
     .threads-comment__body {
+      grid-column: 2;
+      grid-row: 2;
       color: var(--tc-fg);
       line-height: 1.6;
     }
@@ -514,20 +511,33 @@ export function injectComponentStyles(): void {
 
     /* ========= Nested replies ========= */
     .threads-replies {
-      flex-basis: 100%;
-      margin-left: 38px;
-      padding-left: 12px;
-      border-left: 2px solid var(--tc-border);
+      grid-column: 2;
+      grid-row: 3;
     }
+
+    /* Vertical connector line centered under avatar */
+    .threads-comment:has(.threads-replies) > .threads-comment__avatar-col {
+      grid-row: 1 / 4;
+      align-items: flex-start;
+      position: relative;
+    }
+    .threads-comment:has(.threads-replies) > .threads-comment__avatar-col::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      background: var(--tc-border);
+    }
+
     .threads-comment--reply {
       padding: 8px 0 !important;
     }
-    .threads-comment--reply .threads-comment__avatar-col {
-      width: 24px;
-      height: 24px;
-    }
-    .threads-comment--reply .threads-comment__meta {
-      height: 24px;
+    .threads-comment--reply {
+      grid-template-columns: 24px 1fr;
+      grid-template-rows: 24px auto auto;
     }
     .threads-comment--reply .threads-comment__avatar {
       width: 24px;
