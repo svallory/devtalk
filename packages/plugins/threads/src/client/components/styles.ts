@@ -403,9 +403,10 @@ export function injectComponentStyles(): void {
       padding: 10px 14px;
       font-size: 14px;
     }
-    .threads-comment + .threads-comment {
-      border-top: 1px solid var(--tc-border);
-    }
+
+    /** .threads-comment + .threads-comment {
+       border-top: 1px solid var(--tc-border);
+    } */
 
     /* Avatar column — row 1; vertical line spans rows 2-3 */
     .threads-comment__avatar-col {
@@ -420,6 +421,7 @@ export function injectComponentStyles(): void {
       height: 28px;
       border-radius: 50%;
       object-fit: cover;
+      margin: 0;
     }
 
     .threads-comment__meta {
@@ -513,6 +515,7 @@ export function injectComponentStyles(): void {
     .threads-replies {
       grid-column: 2;
       grid-row: 3;
+      margin-top: 12px;
     }
 
     /* Vertical connector line centered under avatar */
@@ -524,7 +527,7 @@ export function injectComponentStyles(): void {
     .threads-comment:has(.threads-replies) > .threads-comment__avatar-col::after {
       content: '';
       position: absolute;
-      top: 28px;
+      top: 36px;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
