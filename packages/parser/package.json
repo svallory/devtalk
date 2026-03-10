@@ -1,6 +1,6 @@
 {
   "name": "@svallory/docmd-parser",
-  "version": "0.6.0-alpha.4",
+  "version": "0.6.0-alpha.5",
   "description": "Pure Markdown parsing engine for docmd.",
   "main": "src/index.js",
   "dependencies": {
